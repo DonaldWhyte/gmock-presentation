@@ -15,7 +15,7 @@
         <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, minimal-ui">
 
         <link rel="stylesheet" href="css/reveal.css">
-        <link rel="stylesheet" href="css/theme/black.css" id="theme">
+        <link rel="stylesheet" href="css/theme/white.css" id="theme">
 
         <!-- Code syntax highlighting -->
         <link rel="stylesheet" href="lib/css/zenburn.css">
@@ -41,30 +41,24 @@
             <!-- Any section element inside of this container is displayed as a slide -->
             <div class="slides">
                 <section>
-                    <h1>Introduction to Google Mock</h1>
-                    <h3>C++ Testing and Mocking Framework</h3>
-                    <p>
-                        <small>Created by <a href="http://donaldwhyte.co.uk">Donald Whyte</a> / <a href="http://twitter.com/donald_whyte">@donald_whyte</a></small>
-                    </p>
-                </section>
+                    <section>
+                        <h1>Introduction to Google Mock</h1>
+                        <h3>C++ Testing and Mocking Framework</h3>
+                        <p>
+                            <small>Created by <a href="http://donaldwhyte.co.uk">Donald Whyte</a> / <a href="http://twitter.com/donald_whyte">@donald_whyte</a></small>
+                        </p>
+                    </section>
 
-                <section>
-                    <h2>What is Google Mock?</h2>
-                    <p>
-                        TODO
-                    </p>
-                </section>
-
-                <section>
-                    <h2>Outline</h2>
-                    <ul>
-                        <li>Google Test</li>
-                        <li>Why Mock?</li>
-                        <li>Google Mock</li>
-                        <li>Real Life Example</li>
-                        <li>Bloomberg and Google Mock</li>
-                        <li>To Mock or Not to Mock</li>
-                    </ul>
+                    <section>
+                        <h2>Outline</h2>
+                        <ul>
+                            <li>Google Test</li>
+                            <li>Why Mock?</li>
+                            <li>Google Mock</li>
+                            <li>Real Life Example</li>
+                            <li>To Mock or Not to Mock</li>
+                        </ul>
+                    </section>
                 </section>
 
                 <section>
@@ -74,7 +68,7 @@
                             Cross-platform C++ testing framework by Google
                         </p>
                         <p>
-                            Originally build for TODO
+                            Tends to be used with Google Mock
                         </p>
                     </section>
 
@@ -204,7 +198,7 @@ tests/
 
                         </code></pre>
                         <pre><code class="hljs" data-trim>
-// sessiontests.m.cpp
+// finprogtests.m.cpp
 #include &lt;gtest/gtest.h&gt;
 
 int main(int argc, char* argv[]) {
@@ -253,79 +247,137 @@ int main(int argc, char* argv[]) {
                 <section>
                     <section>
                         <h2>Why Mock?</h2>
-                        <p>TODO</p>
                     </section>
+
+                    <!-- TODO
+
+                    Should cover:
+                        * motivation mocking (benefits of mocking stuff out)
+                                ^-- get visual here
+                        * test doubles and their types
+                        * core purpose of GMock is...mocks!
+
+                    -->
                 </section>
 
-                <section>
-                    <p>
-                </section>
-
-                <!-- Example of nested vertical slides -->
                 <section>
                     <section>
-                        <h2>Vertical Slides</h2>
-                        <p>Slides can be nested inside of each other.</p>
-                        <p>Use the <em>Space</em> key to navigate through all slides.</p>
-                        <br>
-                        <a href="#" class="navigate-down">
-                            <img width="178" height="238" data-src="https://s3.amazonaws.com/hakim-static/reveal-js/arrow.png" alt="Down arrow">
-                        </a>
+                        <h2>Google Mock</h2>
                     </section>
+
                     <section>
-                        <h2>Basement Level 1</h2>
-                        <p>Nested slides are useful for adding additional detail underneath a high level horizontal slide.</p>
+                        <h2>TODO: example class to test</h2>
+                        <pre><code class="hljs" data-trim>
+                            // TODO
+                        </code></pre>
                     </section>
+
                     <section>
-                        <h2>Basement Level 2</h2>
-                        <p>That's it, time to go back up.</p>
-                        <br>
-                        <a href="#/2">
-                            <img width="178" height="238" data-src="https://s3.amazonaws.com/hakim-static/reveal-js/arrow.png" alt="Up arrow" style="transform: rotate(180deg); -webkit-transform: rotate(180deg);">
-                        </a>
+                        <p>TODO: Diagram showing collaboraters (same style as why mock?)</p>
                     </section>
-                </section>
 
-                <section>
-                    <h2>Slides</h2>
-                    <p>
-                        Not a coder? Not a problem. There's a fully-featured visual editor for authoring these, try it out at <a href="http://slides.com" target="_blank">http://slides.com</a>.
-                    </p>
-                </section>
+                    <section>
+                        <h2>Google Mock to the Rescue</h2>
+                        <ul>
+                            <li>create mock classes using simple macros</li>
+                            <li>rich set of matchers and actions</li>
+                            <li>
+                                can be extended by users to more powerful or
+                                more tailored matchers
+                            </li>
+                        </ul>
+                    </section>
 
-                <section>
-                    <h2>Point of View</h2>
-                    <p>
-                        Press <strong>ESC</strong> to enter the slide overview.
-                    </p>
-                    <p>
-                        Hold down alt and click on any element to zoom in on it using <a href="http://lab.hakim.se/zoom-js">zoom.js</a>. Alt + click anywhere to zoom back out.
-                    </p>
-                </section>
+                    <section>
+                        <h2>Defining Mock Collaborator</h2>
+                        <pre><code class="hljs" data-trim>
+class MockTODO : public TODO {
+    // TODO
+};
+                        </code></pre>
+                    </section>
 
-                <section>
-                    <h2>Touch Optimized</h2>
-                    <p>
-                        Presentations look great on touch devices, like mobile phones and tablets. Simply swipe through your slides.
-                    </p>
-                </section>
+                    <section>
+                        <h2>Setting Expectations</h2>
+                        <pre><code class="hljs" data-trim>
+// TODO: take format from Denis' slides
+// TODO: ON_CALL, EXPECT_CALL and the differences between the two
+                        </code></pre>
+                    </section>
 
-                <section data-markdown>
-                    <script type="text/template">
-                        ## Markdown support
+                    <section>
+                        <h2>Putting it Together</h2>
+                        <pre><code class="hljs" data-trim>
+// TODO: example test case (fail)
+                        </code></pre>
+                    </section>
 
-                        Write content using inline or external Markdown.
-                        Instructions and more info available in the [readme](https://github.com/hakimel/reveal.js#markdown).
+                    <section>
+                        <pre><code class="hljs" data-trim>
+// TODO: example test case (success)
 
-                        ```
-                        <section data-markdown>
-                          ## Markdown support
+// TODO: emphasis the PATTERN --> EXPECT, GIVEN, WHEN, THEN
+// TODO: empahsis on mock expect structure
+    // --> mock object
+    // --> method
+    // --> matchers on args
+    // --> actions to perform (based on args or other bounds values)
+                        </code></pre>
+                    </section>
 
-                          Write content using inline or external Markdown.
-                          Instructions and more info available in the [readme](https://github.com/hakimel/reveal.js#markdown).
-                        </section>
-                        ```
-                    </script>
+                    <section>
+                        <h2>Matchers</h2>
+                        <pre><code class="hljs" data-trim>
+// TODO: using them in expectations
+
+// TODO: using them in `EXPECT_THAT`
+                        </code></pre>
+                    </section>
+
+                    <section>
+                        <h2>Common Matchers</h2>
+                        <pre><code class="hljs" data-trim>
+// TODO: list commonly used matchers, like containers, etc.
+                        </code></pre>
+                    </section>
+
+                    <section>
+                        <h2>Defining Matchers</h2>
+                        <pre><code class="hljs" data-trim>
+// TODO
+                        </code></pre>
+                    </section>
+
+                    <section>
+                        <h2>Actions</h2>
+                        <pre><code class="hljs" data-trim>
+// TODO what they are exactly
+                        </code></pre>
+                    </section>
+
+                    <section>
+                        <h2>Common Actions</h2>
+                        <pre><code class="hljs" data-trim>
+// TODO: list commonly used matchers, like invoke arg, return, do all, etc.
+                        </code></pre>
+                    </section>
+
+                    <section>
+                        <h2>Defining Actions</h2>
+                        <pre><code class="hljs" data-trim>
+// TODO
+                        </code></pre>
+                    </section>
+
+                    <!-- TODO: Extract, non-core topics  -->
+
+                    <section>
+                        <h2>Asychronous Callbacks</h2>
+                        <pre><code class="hljs" data-trim>
+// TODO
+                        </code></pre>
+                    </section>
+
                 </section>
 
                 <section>
@@ -350,20 +402,6 @@ int main(int argc, char* argv[]) {
                         <p class="fragment highlight-blue">highlight-blue</p>
                     </section>
                 </section>
-
-                <section id="transitions">
-                    <h2>Transition Styles</h2>
-                    <p>
-                        You can select from different transitions, like: <br>
-                        <a href="?transition=none#/transitions">None</a> -
-                        <a href="?transition=fade#/transitions">Fade</a> -
-                        <a href="?transition=slide#/transitions">Slide</a> -
-                        <a href="?transition=convex#/transitions">Convex</a> -
-                        <a href="?transition=concave#/transitions">Concave</a> -
-                        <a href="?transition=zoom#/transitions">Zoom</a>
-                    </p>
-                </section>
-
                 <section id="themes">
                     <h2>Themes</h2>
                     <p>
