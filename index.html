@@ -456,6 +456,7 @@ ON_CALL(mockObject, method(matchers))
 
                     <section>
                         <h2>Test Flow</h2>
+                        <!-- TODO: make code font smaller for this section -->
                         <pre><code class="hljs" data-trim>
 TEST(CoinFlipper, ShouldReturnHeadsIfRandValueIsLessThanProbability) {
     // Create mock collaborators
@@ -463,7 +464,7 @@ TEST(CoinFlipper, ShouldReturnHeadsIfRandValueIsLessThanProbability) {
     // Set mock expectations
     EXPECT_CALL(rng, generate(DoubleEq(0.0), DoubleEq(1.0)))
         .Times(Exactly(1))
-        .WillOnce(Return(0.25))
+        .WillOnce(Return(0.25));
 
     // Set input data
     const double headsProbability = 0.5;
@@ -517,12 +518,16 @@ ASSERT_THAT("my name is Donald", HasSubstr("Donald"));
                             </thead>
                             <tbody>
                                 <tr>
+                                    <td>_</td>
+                                    <td>matches anything</td>
+                                </tr>
+                                <tr>
                                     <td>Eq(value)</td>
                                     <td>values using operator==()</td>
                                 </tr>
                                 <tr>
                                     <td>DoubleEq(value)</td>
-                                    <td>values using operator==()</td>
+                                    <td>values using fuzzy 64-bit float equality</td>
                                 </tr>
                                 <tr>
                                     <td>IsNull()</td>
@@ -537,7 +542,7 @@ ASSERT_THAT("my name is Donald", HasSubstr("Donald"));
                                     <td>strings with given substring</td>
                                 </tr>
                             </tbody>
-                            <!-- TODO: make font smaller -->
+                            <!-- TODO: make font smaller, inline code style -->
                         </table>
                     </section>
 
@@ -580,32 +585,75 @@ ASSERT_THAT("my name is Donald", HasSubstr("Donald"));
                     <section>
                         <h2>Nesting Matchers</h2>
                         <pre><code class="hljs" data-trim>
-EXPECT_CALL()
+// writeVec() should be called once, with a 2-element a vector where:
+//   * one element ~= 0.53
+//   * one element that's not 1.0, but can
+EXPECT_CALL(writer, writeVec(UnorderedElementsAre(DoubleEq(0.53),
+                                                  Not(DoubleEq(1.0)))))
+    .Times(Exactly(1)).WillOnce(Return(0));
+
+// writePerson() should be called once, with a person named Donald
+// (case-insensitive) who is 1s 102 years old
+EXPECT_CALL(writer, savePersonToFile(
+                       AllOf(
+                             Property(&Person::name, StrCaseEq("donald")),
+                             Property(&Person::age, 102)
+                       ));
+    .Times(Exactly(1)).WillOnce(Return(0));
                         </code></pre>
                     </section>
 
                     <section>
                         <h2>Defining Matchers</h2>
                         <pre><code class="hljs" data-trim>
-// TODO
+MATCHER(IsEven, "") { return (arg % 2) == 0; }
+
+MATCHER_P(IsDivisibleBy, n, "") {
+    return (arg % n) == 0;
+}
                         </code></pre>
                         <pre><code class="hljs" data-trim>
-// TODO
+// all numbers in vector being written should be even
+EXPECT_CALL(writer, writeVec(Each(IsEven))
+    .Times(Exactly(1)).WillOnce(Return(0));
+
+// all numbers in vector being written should be divisible by 3
+EXPECT_CALL(writer, writeVec(Each(IsDivisibleBy(3))))
+    .Times(Exactly(1)).WillOnce(Return(0));
                         </code></pre>
                     </section>
 
                     <section>
                         <h2>Actions</h2>
+                        <p>
+                            Actions specify what a mock method does when called
+                        </p>
                         <pre><code class="hljs" data-trim>
-// TODO what they are exactly
+EXPECT_CALL(writer, writeVec(_))
+    .Times(Exactly(1)).WillOnce(
+        Return(1) // action
+    );
                         </code></pre>
                     </section>
 
                     <section>
                         <h2>Common Actions</h2>
-                        <pre><code class="hljs" data-trim>
-// TODO: list commonly used matchers, like invoke arg, return, do all, etc.
-                        </code></pre>
+
+                        <p>Google Mock provides lots of matchers out-of-the-box</p>
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Name</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>TODO</td>
+                                    <td>TODO</td>
+                                </tr>
+                            </tbody>
+                        </table>
                     </section>
 
                     <section>
