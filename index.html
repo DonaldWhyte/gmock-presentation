@@ -1,6 +1,12 @@
 <!doctype html>
 <html lang="en">
 
+    <!--
+        Press B or . on your keyboard to pause the presentation.
+        This is helpful when you're on stage and want to take
+        distracting slides off the screen.
+    -->
+
     <head>
         <meta charset="utf-8">
 
@@ -249,6 +255,13 @@ int main(int argc, char* argv[]) {
                         <h2>Why Mock?</h2>
                     </section>
 
+                    <section>
+                        <h2></h2>
+                        <p>
+                            TODO
+                        </p>
+                    </section>
+
                     <!-- TODO
 
                     Should cover:
@@ -266,43 +279,165 @@ int main(int argc, char* argv[]) {
                     </section>
 
                     <section>
-                        <h2>TODO: example class to test</h2>
+                        <h2>Coin Flipper</h2>
+                        <p>
+                            TODO
+                        </p>
+                    </section>
+
+                    <section>
+                        <h2>Interfaces</h2>
                         <pre><code class="hljs" data-trim>
-                            // TODO
+class CoinFlipper {
+  private:
+    Rng* d_rng; // held, not owned
+
+  public:
+    enum Result {
+        HEADS = 0,
+        TAILS = 1
+    };
+
+    explicit CoinFlipper(Rng* rng);
+    Result flipCoin() const;
+};
                         </code></pre>
-                    </section>
-
-                    <section>
-                        <p>TODO: Diagram showing collaboraters (same style as why mock?)</p>
-                    </section>
-
-                    <section>
-                        <h2>Google Mock to the Rescue</h2>
-                        <ul>
-                            <li>create mock classes using simple macros</li>
-                            <li>rich set of matchers and actions</li>
-                            <li>
-                                can be extended by users to more powerful or
-                                more tailored matchers
-                            </li>
-                        </ul>
-                    </section>
-
-                    <section>
-                        <h2>Defining Mock Collaborator</h2>
                         <pre><code class="hljs" data-trim>
-class MockTODO : public TODO {
-    // TODO
+class Rng {
+  public:
+    virtual ~Rng();
+    virtual double generate(double min, double max) = 0;
 };
                         </code></pre>
                     </section>
 
                     <section>
+                        <h2>Implementation</h2>
+                        <pre><code class="hljs" data-trim>
+CoinFlipper::CoinFlipper(Rng* rng) : d_rng(rng)
+{
+    BSLS_ASSERT(d_rng);
+}
+
+CoinFlipper::Result CoinFlipper::flipCoin() const
+{
+    const double val = d_rng->generate(0.0, 1.0);
+    if (val < 0.5) {
+        return HEADS;
+    } else {
+        return TAILS;
+    }
+}
+                        </code></pre>
+                    </section>
+
+                    <section>
+                        <p>TODO: Diagram showing collaboraters (same style as why mock?)</p>
+                        <p>
+                            explain what our goal is -- to mock out the RNG and
+                            have more controlled tests
+                        </p>
+                    </section>
+
+                    <section>
+                        <h2>Google Mock to the Rescue!</h2>
+                        <ul>
+                            <li>create mock classes using simple macros</li>
+                            <li>
+                                rich set of <strong>matchers</strong> and
+                                <strong>actions</strong>
+                            </li>
+                            <li>
+                                easily extensible by users to provide even
+                                richer features
+                            </li>
+                        </ul>
+                    </section>
+
+                    <section>
+                        <h2>Defining Mock Collaborators</h2>
+
+                        <pre><code class="hljs" data-trim>
+MOCK_METHOD[n](methodName, returnType(arg1Type, ..., argNType));
+MOCK_CONST_METHOD[n](methodName, returnType(arg1Type, ..., argNType));
+                        </code></pre>
+                        <pre><code class="hljs" data-trim>
+class MockRng : public Rng {
+  public:
+    // generates implementation of
+    // "double generate(double min, double max)"
+    MOCK_METHOD2(generate, double(double, double));
+};
+                        </code></pre>
+                    </section>
+
+                    <section>
+                        <h2>Defining Mock Collaborators</h2>
+
+                        <ul>
+                            <li>`~Rng()` must be virtual</li>
+                            <li>
+                                If `generate()` is defined in a superclass,
+                                then it must be declared virtual in that
+                                superclass
+                            </li>
+                            <li>
+                                In other words, <strong>you can't mock
+                                non-virtual methods</strong>
+                            </li>
+                            <!--
+                                If the hit on performance caused by vtable
+                                lookups is a serious concern, then one can mock
+                                non-virtual methods by making the type being
+                                mocked a *template* parameter of the function
+                                or class under test.
+                            -->
+                        </ul>
+                    </section>
+
+                    <section>
                         <h2>Setting Expectations</h2>
                         <pre><code class="hljs" data-trim>
-// TODO: take format from Denis' slides
-// TODO: ON_CALL, EXPECT_CALL and the differences between the two
+// test fails in `generate()` is not called exactly once with
+// `min = 0.0` and `max = 1.0`
+MockRng rng;
+EXPECT_CALL(rng, generate(DoubleEq(0.0), DoubleEq(1.0))
+    .Times(Exactly(1))
+    .WillOnce(Return(0.25));
                         </code></pre>
+                        <pre><code class="hljs" data-trim>
+EXPECT_CALL(mockObject, method(arg1Matcher, ..., argNMatcher))
+    .With(multiArgumentMatcher)  // 0 or 1
+    .Times(cardinality)          // 0 or 1
+    .InSequence(sequences)       // 0+
+    .After(expectations)         // 0+
+    .WillOnce(action)            // 0+
+    .WillRepeatedly(action)      // 0 or 1
+    .RetiresOnSaturation();      // 0 or 1
+                        </code></pre>
+                    </section>
+
+                    <section>
+                        <h2>Default Actions</h2>
+                        <pre><code class="hljs" data-trim>
+// test passes regardless of whether `rng.generate()` is called or not.
+// here, the default action is to return `min` argument
+MockRng rng;
+ON_CALL(rng, generate(_, _))
+    .WillByDefault(ReturnArg<0>());
+                        </code></pre>
+                        <pre><code class="hljs" data-trim>
+ON_CALL(mockObject, method(matchers))
+    .With(multiArgumentMatcher)  // 0 or 1
+    .WillByDefault(action);
+                        </code></pre>
+                    </section>
+
+                    <section>
+                        <h2>ON_CALL or EXPECT_CALL?</h2>
+                        <p>
+                            TODO: explain differences and reasons for using both
+                        </p>
                     </section>
 
                     <section>
@@ -313,36 +448,147 @@ class MockTODO : public TODO {
                     </section>
 
                     <section>
+                        <h2>Putting it Together</h2>
                         <pre><code class="hljs" data-trim>
 // TODO: example test case (success)
-
-// TODO: emphasis the PATTERN --> EXPECT, GIVEN, WHEN, THEN
-// TODO: empahsis on mock expect structure
-    // --> mock object
-    // --> method
-    // --> matchers on args
-    // --> actions to perform (based on args or other bounds values)
                         </code></pre>
                     </section>
 
                     <section>
-                        <h2>Matchers</h2>
+                        <h2>Test Flow</h2>
                         <pre><code class="hljs" data-trim>
-// TODO: using them in expectations
+TEST(CoinFlipper, ShouldReturnHeadsIfRandValueIsLessThanProbability) {
+    // Create mock collaborators
+    MockRng rng;
+    // Set mock expectations
+    EXPECT_CALL(rng, generate(DoubleEq(0.0), DoubleEq(1.0)))
+        .Times(Exactly(1))
+        .WillOnce(Return(0.25))
 
-// TODO: using them in `EXPECT_THAT`
+    // Set input data
+    const double headsProbability = 0.5;
+    // Run code under test (using mock objects)
+    CoinFlipper coinFlipper(&rng);
+    Result result = coinFlipper.flipCoin();
+    // Assert expectations on output
+    EXPECT_EQ(CoinFlipper::HEADS, result);
+
+    // ...mock expectations will be verified at end of test
+}
+                        </code></pre>
+<!--
+// TODO: emphasis the PATTERN -> EXPECT, GIVEN, WHEN, THEN
+// TODO: empahsis on mock expect structure
+    // -> mock object
+    // -> method
+    // -> matchers on args
+    // -> actions to perform (based on args or other bounds values)
+-->
+                    </section>
+
+                    <section>
+                        <h2>Matchers</h2>
+                        <p>
+                            Matchers are functions used to match mock inputs to
+                            their expected values
+                        </p>
+                        <pre><code class="hljs" data-trim>
+// Matchers are used to set expectations on the values of mocked
+// function arguments
+EXPECT_CALL(printer, printVec(UnorderedElementsAre("foo", "bar")))
+    .Times(Exactly(1));
+
+// They can also be outside of call expections, to match any kind
+// of value
+EXPECT_THAT(someVector, UnorderedElementsAre("foo", "bar"));
+ASSERT_THAT("my name is Donald", HasSubstr("Donald"));
                         </code></pre>
                     </section>
 
                     <section>
                         <h2>Common Matchers</h2>
+                        <p>Google Mock provides lots of matchers out-of-the-box</p>
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Matcher</th>
+                                    <th>Matches</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>Eq(value)</td>
+                                    <td>values using operator==()</td>
+                                </tr>
+                                <tr>
+                                    <td>DoubleEq(value)</td>
+                                    <td>values using operator==()</td>
+                                </tr>
+                                <tr>
+                                    <td>IsNull()</td>
+                                    <td>null raw/smart pointers)</td>
+                                </tr>
+                                <tr>
+                                    <td>StrCaseEq(string)</td>
+                                    <td>string (case-insensitive)</td>
+                                </tr>
+                                <tr>
+                                    <td>HasSubstr(string)</td>
+                                    <td>strings with given substring</td>
+                                </tr>
+                            </tbody>
+                            <!-- TODO: make font smaller -->
+                        </table>
+                    </section>
+
+                    <section>
+                        <h2>Common Matchers</h2>
+                        <p>Google Mock provides lots of matchers out-of-the-box</p>
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Matcher</th>
+                                    <th>Matches</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>Contains(elem)</td>
+                                    <td>containers that contain `elem` at least
+                                    once</td>
+                                </tr>
+                                <tr>
+                                    <td>UnorderedElementsAre(e0, e1, ...)</td>
+                                    <td>containers that contain specified
+                                    elements, ignoring order</td>
+                                </tr>
+                                <tr>
+                                    <td>Field(&class::field, matcher)</td>
+                                    <td>objects with value for specified member
+                                    variable (e.g. obj.d_age)</td>
+                                </tr>
+                                <tr>
+                                    <td>Property(&class::property, matcher)</td>
+                                    <td>objects with value for specified member
+                                    function (e.g. obj.age())</td>
+                                </tr>
+                                <!-- TODO: make font smaller -->
+                            </tbody>
+                        </table>
+                    </section>
+
+                    <section>
+                        <h2>Nesting Matchers</h2>
                         <pre><code class="hljs" data-trim>
-// TODO: list commonly used matchers, like containers, etc.
+EXPECT_CALL()
                         </code></pre>
                     </section>
 
                     <section>
                         <h2>Defining Matchers</h2>
+                        <pre><code class="hljs" data-trim>
+// TODO
+                        </code></pre>
                         <pre><code class="hljs" data-trim>
 // TODO
                         </code></pre>
@@ -369,8 +615,20 @@ class MockTODO : public TODO {
                         </code></pre>
                     </section>
 
-                    <!-- TODO: Extract, non-core topics  -->
+                </section>
 
+                <section>
+                    <section>
+                        <h2>Summary</h2>
+                    </section>
+
+                    <!-- TODO: sumarise entire tlak -->
+                </section>
+
+                <section>
+                    <section>
+                        <h2>Appendix</h2>
+                    </section>
                     <section>
                         <h2>Asychronous Callbacks</h2>
                         <pre><code class="hljs" data-trim>
@@ -380,181 +638,7 @@ class MockTODO : public TODO {
 
                 </section>
 
-                <section>
-                    <section id="fragments">
-                        <h2>Fragments</h2>
-                        <p>Hit the next arrow...</p>
-                        <p class="fragment">... to step through ...</p>
-                        <p><span class="fragment">... a</span> <span class="fragment">fragmented</span> <span class="fragment">slide.</span></p>
-
-                        <aside class="notes">
-                            This slide has fragments which are also stepped through in the notes window.
-                        </aside>
-                    </section>
-                    <section>
-                        <h2>Fragment Styles</h2>
-                        <p>There's different types of fragments, like:</p>
-                        <p class="fragment grow">grow</p>
-                        <p class="fragment shrink">shrink</p>
-                        <p class="fragment fade-out">fade-out</p>
-                        <p class="fragment current-visible">current-visible</p>
-                        <p class="fragment highlight-red">highlight-red</p>
-                        <p class="fragment highlight-blue">highlight-blue</p>
-                    </section>
-                </section>
-                <section id="themes">
-                    <h2>Themes</h2>
-                    <p>
-                        reveal.js comes with a few themes built in: <br>
-                        <!-- Hacks to swap themes after the page has loaded. Not flexible and only intended for the reveal.js demo deck. -->
-                        <a href="#" onclick="document.getElementById('theme').setAttribute('href','css/theme/black.css'); return false;">Black (default)</a> -
-                        <a href="#" onclick="document.getElementById('theme').setAttribute('href','css/theme/white.css'); return false;">White</a> -
-                        <a href="#" onclick="document.getElementById('theme').setAttribute('href','css/theme/league.css'); return false;">League</a> -
-                        <a href="#" onclick="document.getElementById('theme').setAttribute('href','css/theme/sky.css'); return false;">Sky</a> -
-                        <a href="#" onclick="document.getElementById('theme').setAttribute('href','css/theme/beige.css'); return false;">Beige</a> -
-                        <a href="#" onclick="document.getElementById('theme').setAttribute('href','css/theme/simple.css'); return false;">Simple</a> <br>
-                        <a href="#" onclick="document.getElementById('theme').setAttribute('href','css/theme/serif.css'); return false;">Serif</a> -
-                        <a href="#" onclick="document.getElementById('theme').setAttribute('href','css/theme/blood.css'); return false;">Blood</a> -
-                        <a href="#" onclick="document.getElementById('theme').setAttribute('href','css/theme/night.css'); return false;">Night</a> -
-                        <a href="#" onclick="document.getElementById('theme').setAttribute('href','css/theme/moon.css'); return false;">Moon</a> -
-                        <a href="#" onclick="document.getElementById('theme').setAttribute('href','css/theme/solarized.css'); return false;">Solarized</a>
-                    </p>
-                </section>
-
-                <section>
-                    <section data-background="#dddddd">
-                        <h2>Slide Backgrounds</h2>
-                        <p>
-                            Set <code>data-background="#dddddd"</code> on a slide to change the background color. All CSS color formats are supported.
-                        </p>
-                        <a href="#" class="navigate-down">
-                            <img width="178" height="238" data-src="https://s3.amazonaws.com/hakim-static/reveal-js/arrow.png" alt="Down arrow">
-                        </a>
-                    </section>
-                    <section data-background="https://s3.amazonaws.com/hakim-static/reveal-js/image-placeholder.png">
-                        <h2>Image Backgrounds</h2>
-                        <pre><code class="hljs">&lt;section data-background="image.png"&gt;</code></pre>
-                    </section>
-                    <section data-background="https://s3.amazonaws.com/hakim-static/reveal-js/image-placeholder.png" data-background-repeat="repeat" data-background-size="100px">
-                        <h2>Tiled Backgrounds</h2>
-                        <pre><code class="hljs" style="word-wrap: break-word;">&lt;section data-background="image.png" data-background-repeat="repeat" data-background-size="100px"&gt;</code></pre>
-                    </section>
-                    <section data-background-video="https://s3.amazonaws.com/static.slid.es/site/homepage/v1/homepage-video-editor.mp4,https://s3.amazonaws.com/static.slid.es/site/homepage/v1/homepage-video-editor.webm" data-background-color="#000000">
-                        <div style="background-color: rgba(0, 0, 0, 0.9); color: #fff; padding: 20px;">
-                            <h2>Video Backgrounds</h2>
-                            <pre><code class="hljs" style="word-wrap: break-word;">&lt;section data-background-video="video.mp4,video.webm"&gt;</code></pre>
-                        </div>
-                    </section>
-                    <section data-background="http://i.giphy.com/90F8aUepslB84.gif">
-                        <h2>... and GIFs!</h2>
-                    </section>
-                </section>
-
-                <section data-transition="slide" data-background="#4d7e65" data-background-transition="zoom">
-                    <h2>Background Transitions</h2>
-                    <p>
-                        Different background transitions are available via the backgroundTransition option. This one's called "zoom".
-                    </p>
-                    <pre><code class="hljs">Reveal.configure({ backgroundTransition: 'zoom' })</code></pre>
-                </section>
-
-                <section data-transition="slide" data-background="#b5533c" data-background-transition="zoom">
-                    <h2>Background Transitions</h2>
-                    <p>
-                        You can override background transitions per-slide.
-                    </p>
-                    <pre><code class="hljs" style="word-wrap: break-word;">&lt;section data-background-transition="zoom"&gt;</code></pre>
-                </section>
-
-                <section>
-                    <h2>Pretty Code</h2>
-                    <pre><code class="hljs" data-trim>
-function linkify( selector ) {
-  if( supports3DTransforms ) {
-
-    var nodes = document.querySelectorAll( selector );
-
-    for( var i = 0, len = nodes.length; i &lt; len; i++ ) {
-      var node = nodes[i];
-
-      if( !node.className ) {
-        node.className += ' roll';
-      }
-    }
-  }
-}
-                    </code></pre>
-                    <p>Code syntax highlighting courtesy of <a href="http://softwaremaniacs.org/soft/highlight/en/description/">highlight.js</a>.</p>
-                </section>
-
-                <section>
-                    <h2>Marvelous List</h2>
-                    <ul>
-                        <li>No order here</li>
-                        <li>Or here</li>
-                        <li>Or here</li>
-                        <li>Or here</li>
-                    </ul>
-                </section>
-
-                <section>
-                    <h2>Fantastic Ordered List</h2>
-                    <ol>
-                        <li>One is smaller than...</li>
-                        <li>Two is smaller than...</li>
-                        <li>Three!</li>
-                    </ol>
-                </section>
-
-                <section>
-                    <h2>Tabular Tables</h2>
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Item</th>
-                                <th>Value</th>
-                                <th>Quantity</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td>Apples</td>
-                                <td>$1</td>
-                                <td>7</td>
-                            </tr>
-                            <tr>
-                                <td>Lemonade</td>
-                                <td>$2</td>
-                                <td>18</td>
-                            </tr>
-                            <tr>
-                                <td>Bread</td>
-                                <td>$3</td>
-                                <td>2</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </section>
-
-                <section>
-                    <h2>Clever Quotes</h2>
-                    <p>
-                        These guys come in two forms, inline: <q cite="http://searchservervirtualization.techtarget.com/definition/Our-Favorite-Technology-Quotations">
-                        &ldquo;The nice thing about standards is that there are so many to choose from&rdquo;</q> and block:
-                    </p>
-                    <blockquote cite="http://searchservervirtualization.techtarget.com/definition/Our-Favorite-Technology-Quotations">
-                        &ldquo;For years there has been a theory that millions of monkeys typing at random on millions of typewriters would
-                        reproduce the entire works of Shakespeare. The Internet has proven this theory to be untrue.&rdquo;
-                    </blockquote>
-                </section>
-
-                <section>
-                    <h2>Intergalactic Interconnections</h2>
-                    <p>
-                        You can link between slides internally,
-                        <a href="#/2/3">like this</a>.
-                    </p>
-                </section>
+                <!--
 
                 <section>
                     <h2>Speaker View</h2>
@@ -572,52 +656,7 @@ function linkify( selector ) {
                     <iframe src="https://www.slideshare.net/slideshow/embed_code/42840540" width="445" height="355" frameborder="0" marginwidth="0" marginheight="0" scrolling="no" style="border:3px solid #666; margin-bottom:5px; max-width: 100%;" allowfullscreen> </iframe>
                 </section>
 
-                <section>
-                    <h2>Global State</h2>
-                    <p>
-                        Set <code>data-state="something"</code> on a slide and <code>"something"</code>
-                        will be added as a class to the document element when the slide is open. This lets you
-                        apply broader style changes, like switching the page background.
-                    </p>
-                </section>
-
-                <section data-state="customevent">
-                    <h2>State Events</h2>
-                    <p>
-                        Additionally custom events can be triggered on a per slide basis by binding to the <code>data-state</code> name.
-                    </p>
-                    <pre><code class="javascript" data-trim contenteditable style="font-size: 18px;">
-Reveal.addEventListener( 'customevent', function() {
-    console.log( '"customevent" has fired' );
-} );
-                    </code></pre>
-                </section>
-
-                <section>
-                    <h2>Take a Moment</h2>
-                    <p>
-                        Press B or . on your keyboard to pause the presentation. This is helpful when you're on stage and want to take distracting slides off the screen.
-                    </p>
-                </section>
-
-                <section>
-                    <h2>Much more</h2>
-                    <ul>
-                        <li>Right-to-left support</li>
-                        <li><a href="https://github.com/hakimel/reveal.js#api">Extensive JavaScript API</a></li>
-                        <li><a href="https://github.com/hakimel/reveal.js#auto-sliding">Auto-progression</a></li>
-                        <li><a href="https://github.com/hakimel/reveal.js#parallax-background">Parallax backgrounds</a></li>
-                        <li><a href="https://github.com/hakimel/reveal.js#keyboard-bindings">Custom keyboard bindings</a></li>
-                    </ul>
-                </section>
-
-                <section style="text-align: left;">
-                    <h1>THE END</h1>
-                    <p>
-                        - <a href="http://slides.com">Try the online editor</a> <br>
-                        - <a href="https://github.com/hakimel/reveal.js">Source code &amp; documentation</a>
-                    </p>
-                </section>
+                -->
 
             </div>
 
