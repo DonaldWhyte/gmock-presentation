@@ -6,6 +6,10 @@
     font-size: 26px;
 }
 
+code {
+    color: #22F;
+}
+
 code.small {
     font-size: 16px;
     line-height: 18px;
@@ -16,11 +20,6 @@ code.medium {
     line-height: 20px;
 }
 
-.replace-fragment {
-    position: absolute;
-    margin-left: auto;
-    margin-right: auto;
-    left: 0;
-    right: 0;
-    box-shadow: none !important;
+.reveal section img {
+    border: 0px;
 }

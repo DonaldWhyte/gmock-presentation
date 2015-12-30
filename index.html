@@ -217,9 +217,28 @@ int main(int argc, char* argv[]) {
 
                     <section>
                         <h2>Running Tests</h2>
-                        <pre><code class="hljs cpp" data-trim>
+                        <pre><code class="hljs medium" data-trim>
 ./finprogtests
-// TODO: output here
+[==========] Running 4 tests from 2 test cases.
+[----------] Global test environment set-up.
+[----------] 3 tests from StockRepositoryTests
+[ RUN      ] StockRepositoryTests.TotalStockCountReflectsNumStocksInRepo
+[       OK ] StockRepositoryTests.TotalStockCountReflectsNumStocksInRepo (1 ms)
+[ RUN      ] StockRepositoryTests.ShouldFailToAddStockWithDuplicateName
+[       OK ] StockRepositoryTests.ShouldFailToAddStockWithDuplicateName (1 ms)
+[----------] 2 tests from StockRepositoryTests (2 ms total)
+
+[----------] 2 tests from StockTests
+[ RUN      ] StockTests.InitialisedCorrectly
+[       OK ] StockTests.InitialisedCorrectly (1 ms)
+[ RUN      ] StockTests.PrintSuccessful
+[       OK ] StockTests.PrintSuccessful (2 ms)
+[----------] 2 tests from StockTests (2 ms total)
+
+[----------] Global test environment tear-down
+[==========] 4 tests from 2 test cases ran. (4 ms total)
+[  PASSED  ] 4 tests.
+
                         </code></pre>
                     </section>
 
@@ -279,15 +298,26 @@ int main(int argc, char* argv[]) {
                         <h2>Google Mock</h2>
                     </section>
 
-                    <section>
-                        <h2>Coin Flipper</h2>
-                        <p>
-                            TODO
-                        </p>
-                    </section>
+                        <section data-markdown>
+                        ## Coin Flipper
+                        ![](images/coin-flip.jpg)
+
+                        * A simple game to flip a coin
+                        * `CoinFlipper` class implements our game
+                        * It interacts with a random number generator
+                        * We can change a number generator at runtime
+                        * Goal is to **test** `CoinFlipper`
+                        </section>
 
                     <section>
                         <h2>Interfaces</h2>
+                        <pre><code class="hljs cpp" data-trim>
+class Rng {
+  public:
+    virtual ~Rng();
+    virtual double generate(double min, double max) = 0;
+};
+                        </code></pre>
                         <pre><code class="hljs cpp" data-trim>
 class CoinFlipper {
   private:
@@ -301,13 +331,6 @@ class CoinFlipper {
 
     explicit CoinFlipper(Rng* rng);
     Result flipCoin() const;
-};
-                        </code></pre>
-                        <pre><code class="hljs cpp" data-trim>
-class Rng {
-  public:
-    virtual ~Rng();
-    virtual double generate(double min, double max) = 0;
 };
                         </code></pre>
                     </section>
@@ -330,6 +353,21 @@ CoinFlipper::Result CoinFlipper::flipCoin() const
     }
 }
                         </code></pre>
+                    </section>
+
+                    <section>
+                        <h2>Playing the Game</h2>
+                        <pre><code class="hljs cpp" data-trim>
+... generator; // Construct a particular generator
+
+// Create a game
+CoinFlipper game(generator);
+
+// Start playing
+CoinFlipper::Result flip = game.flip();
+                        </code></pre>
+                        <code>flip</code> is either
+                        <code>HEADS</code> or <code>TAILS</code>
                     </section>
 
                     <section>
@@ -807,7 +845,7 @@ EXPECT_CALL(writer, writeVec(_))
                 history: true,
                 center: true,
 
-                transition: 'slide', // none/fade/slide/convex/concave/zoom
+                transition: 'none', // none/fade/slide/convex/concave/zoom
 
                 // Optional reveal.js plugins
                 dependencies: [
