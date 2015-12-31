@@ -224,7 +224,8 @@ int main(int argc, char* argv[]) {
 [----------] 3 tests from StockRepositoryTests
 [ RUN      ] StockRepositoryTests.TotalStockCountReflectsNumStocksInRepo
 [       OK ] StockRepositoryTests.TotalStockCountReflectsNumStocksInRepo (1 ms)
-[ RUN      ] StockRepositoryTests.ShouldFailToAddStockWithDuplicateName
+[ RUN      ] StockRepositoryTests.ShouldFailToAddStockWithDuplicateNametively maintained (stats)
+    -->
 [       OK ] StockRepositoryTests.ShouldFailToAddStockWithDuplicateName (1 ms)
 [----------] 2 tests from StockRepositoryTests (2 ms total)
 
@@ -254,20 +255,9 @@ int main(int argc, char* argv[]) {
 ./finprogtests --gtest_filter=StockRepositoryTests.*
                         </code></pre>
                     </section>
+                </section>
 
-                    <section>
-                        <h2>cmdtst</h2>
-                        <!-- FILL IN:
-
-                        * what it is
-                        * useful features
-                        * repo link
-                        * actively maintained (stats)
-                        -->
-                        <p>
-                            TODO
-                        </p>
-                    </section>
+                <section data-external="external/cmdtst.html">
                 </section>
 
                 <section>
@@ -780,11 +770,7 @@ EXPECT_CALL(writer, writeVec(_))
 
                 </section>
 
-
-                <section>
-                    <section>
-                        <h2>Putting it All Together</h2>
-                    </section>
+                <section data-external="external/putting_it_together.html">
                 </section>
 
                 <section>
@@ -854,7 +840,13 @@ EXPECT_CALL(writer, writeVec(_))
                     { src: 'plugin/markdown/markdown.js', condition: function() { return !!document.querySelector( '[data-markdown]' ); } },
                     { src: 'plugin/highlight/highlight.js', async: true, callback: function() { hljs.initHighlightingOnLoad(); } },
                     { src: 'plugin/zoom-js/zoom.js', async: true },
-                    { src: 'plugin/notes/notes.js', async: true }
+                    { src: 'plugin/notes/notes.js', async: true },
+                    {
+                        src: 'plugin/external/external.js',
+                        condition: function() {
+                            return !!document.querySelector( '[data-external]' );
+                        }
+                    },
                 ]
             });
 
