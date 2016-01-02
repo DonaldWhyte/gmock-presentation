@@ -217,27 +217,26 @@ int main(int argc, char* argv[]) {
 
                     <section>
                         <h2>Running Tests</h2>
-                        <pre><code class="hljs medium" data-trim>
+                        <pre><code class="hljs small" data-trim>
 ./finprogtests
 [==========] Running 4 tests from 2 test cases.
 [----------] Global test environment set-up.
 [----------] 3 tests from StockRepositoryTests
 [ RUN      ] StockRepositoryTests.TotalStockCountReflectsNumStocksInRepo
-[       OK ] StockRepositoryTests.TotalStockCountReflectsNumStocksInRepo (1 ms)
-[ RUN      ] StockRepositoryTests.ShouldFailToAddStockWithDuplicateNametively maintained (stats)
-    -->
+[       OK ] StockRepositoryTests.TotalStockCountReflectsNumStocksInRepo (0 ms)
+[ RUN      ] StockRepositoryTests.ShouldFailToAddStockWithDuplicateName
 [       OK ] StockRepositoryTests.ShouldFailToAddStockWithDuplicateName (1 ms)
-[----------] 2 tests from StockRepositoryTests (2 ms total)
+[----------] 2 tests from StockRepositoryTests (1 ms total)
 
 [----------] 2 tests from StockTests
 [ RUN      ] StockTests.InitialisedCorrectly
 [       OK ] StockTests.InitialisedCorrectly (1 ms)
 [ RUN      ] StockTests.PrintSuccessful
-[       OK ] StockTests.PrintSuccessful (2 ms)
+[       OK ] StockTests.PrintSuccessful (1 ms)
 [----------] 2 tests from StockTests (2 ms total)
 
 [----------] Global test environment tear-down
-[==========] 4 tests from 2 test cases ran. (4 ms total)
+[==========] 4 tests from 2 test cases ran. (3 ms total)
 [  PASSED  ] 4 tests.
 
                         </code></pre>
@@ -336,6 +335,8 @@ CoinFlipper::CoinFlipper(Rng* rng) : d_rng(rng)
 CoinFlipper::Result CoinFlipper::flipCoin() const
 {
     const double val = d_rng->generate(0.0, 1.0);
+    BSLS_ASSERT(0.0 <= val && val <= 1.0);
+
     if (val < 0.5) {
         return HEADS;
     } else {
@@ -360,12 +361,13 @@ CoinFlipper::Result flip = game.flip();
                         <code>HEADS</code> or <code>TAILS</code>
                     </section>
 
-                    <section>
-                        <p>TODO: Diagram showing collaboraters (same style as why mock?)</p>
-                        <p>
-                            explain what our goal is -- to mock out the RNG and
-                            have more controlled tests
-                        </p>
+                    <section data-markdown>
+                    ![](images/coin-flip-collaboraters.jpg)
+
+                    * One collaborator -- `Rng`
+                    * Real RNG is unpredictable
+                    * We want to ensure `CoinFlipper` produces both results
+                    * Have to mock `Rng` for repeatable tests
                     </section>
 
                     <section>
@@ -500,23 +502,38 @@ ON_CALL(mockObject, method(matchers))
                         </p>
                         <p>
                             <strong>Rule of Thumb: </strong>
-                            Use <code>ON_CALL</code> unless you intend to
-                            affect the expectation on the method
+                            Use <code>ON_CALL</code> unless you actually want
+                            to test a method is called a specific number of
+                            times
 
                             <!--
-                                TODO: proper justification
+                                Justification for rule of thumb:
 
-                                TODO: looser, tighter tests, over fitting
-                                implementation, etc.
+                                * makes tests depend less on implementation
+                                  details
+                                * for example, if `getCellValue()` is called
+                                  twice instead of once -- count might not
+                                  actually matter as long as visible output
+                                  is the same
+                                * this is important -- using mocks introduces
+                                * the possibility of writing tests that overfit
+                                  the implementation, making the whole test
+                                  suite harder to maintain as it grows
+                                * no one wants to spend the majority of their
+                                  time updating tests when they change a couple
+                                  of lines of implementation
                             -->
                         </p>
                     </section>
 
-                    <section>
-                        <h2>Structuring Mock Tests</h2>
-                        <p>
-                            TODO: what to test and what happens next
-                        </p>
+                    <section data-markdown>
+                        ## Structuring Mock Tests
+
+                        * `CoinFlipper` generates a value in the range `[0,1]`
+                        * `<0.5` means `HEADS`, `>=0.5` means `TAILS`
+                        * Let's write a test to ensure `HEADS` is returned when
+                          the generated value is `<0.5`
+                        </ul>
                     </section>
 
                     <section>
@@ -565,6 +582,33 @@ TEST(CoinFlipper, ShouldReturnHeadsIfRandValueIsLessThanProbability) {
                         </code></pre>
                     </section>
 
+                    <section>
+                        <h2>Parametrised Tests</h2>
+                        <pre><code class="hljs cpp small" data-trim>
+TEST_P(CoinFlipper, CoinFlip) {
+    const double randomVal = GetParam()->first;
+    const CoinFlipper::Result = GetParam()->second;
+
+    MockRng rng;
+    EXPECT_CALL(rng, generate(DoubleEq(0.0), DoubleEq(1.0)))
+        .Times(Exactly(1))
+        .WillOnce(Return(randomVal));
+
+    CoinFlipper coinFlipper(&rng);
+    Result result = coinFlipper.flipCoin();
+
+    EXPECT_EQ(expectedResult, result);
+}
+
+INSTANTIATE_TEST_CASE_P(ValidRandomNumberGenerated, CoinFlipper,
+                        Values(bsl::make_pair(0.0, CoinFlipper::HEADS),
+                               bsl::make_pair(0.25, CoinFlipper::HEADS),
+                               bsl::make_pair(0.49999, CoinFlipper::HEADS),
+                               bsl::make_pair(0.5, CoinFlipper::TAILS),
+                               bsl::make_pair(0.75, CoinFlipper::TAILS),
+                               bsl::make_pair(1.0, CoinFlipper::TAILS));
+                        </code></pre>
+                    </section>
 
                     <section>
                         <h2>Matchers</h2>
@@ -621,7 +665,6 @@ ASSERT_THAT("my name is Donald", HasSubstr("Donald"));
                                     <td>strings with given substring</td>
                                 </tr>
                             </tbody>
-                            <!-- TODO: make font smaller, inline code style -->
                         </table>
                     </section>
 
@@ -662,7 +705,6 @@ ASSERT_THAT("my name is Donald", HasSubstr("Donald"));
                                         (e.g. <code>obj.age()</code>)
                                     </td>
                                 </tr>
-                                <!-- TODO: make font smaller -->
                             </tbody>
                         </table>
                     </section>
@@ -764,7 +806,26 @@ EXPECT_CALL(writer, writeVec(_))
                     <section>
                         <h2>Defining Actions</h2>
                         <pre><code class="hljs cpp" data-trim>
-// TODO
+// return statement in actions causes mock method to return this value
+ACTION(Sum) {
+    return arg0 + arg1;
+}
+
+// parametrised action
+ACTION_P(AppendName, name) {
+    arg0.push_back(name);
+}
+                        </code></pre>
+                        <pre><code class="hljs cpp" data-trim>
+EXPECT_CALL(calculator, add(_, _))
+    .Times(Exactly(1)).WillOnce(Sum());
+
+EXPECT_CALL(customerDatabase, retrieveCustomerNames(_))
+    .Times(Exactly(1)).WillOnce(DoAll(
+        AppendName("Bob"),
+        AppendName("Susie"),
+        Return(0)             // retrieval was a success
+    ));
                         </code></pre>
                     </section>
 
@@ -779,19 +840,6 @@ EXPECT_CALL(writer, writeVec(_))
                     </section>
 
                     <!-- TODO: summarise entire talk -->
-                </section>
-
-                <section>
-                    <section>
-                        <h2>Appendix</h2>
-                    </section>
-                    <section>
-                        <h2>Asychronous Callbacks</h2>
-                        <pre><code class="hljs cpp" data-trim>
-// TODO
-                        </code></pre>
-                    </section>
-
                 </section>
 
                 <!--
