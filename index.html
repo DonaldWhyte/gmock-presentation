@@ -75,7 +75,7 @@
                             Cross-platform C++ testing framework by Google
                         </p>
                         <p>
-                            Tends to be used with Google Mock
+                            Commonly used in conjunction with Google Mock
                         </p>
                     </section>
 
@@ -361,13 +361,21 @@ CoinFlipper::Result flip = game.flip();
                         <code>HEADS</code> or <code>TAILS</code>
                     </section>
 
-                    <section data-markdown>
-                    ![](images/coin-flip-collaboraters.jpg)
-
-                    * One collaborator -- `Rng`
-                    * Real RNG is unpredictable
-                    * We want to ensure `CoinFlipper` produces both results
-                    * Have to mock `Rng` for repeatable tests
+                    <section>
+                        <div id="coinFlipCollaborators"></div>
+                        <ul>
+                            <li>One collaborator -- <code>Rng</code></li>
+                            <li>Real RNG is unpredictable</li>
+                            <li>
+                                We want to test <code>CoinFlipper</code>
+                                produces both results
+                                <ul>
+                                    <li>we also want these tests to be repeatable</li>
+                                    <li>without relying on an external environment</li>
+                                </ul>
+                            </li>
+                            <li>Have to mock <code>Rng</code></li>
+                        </ul>
                     </section>
 
                     <section>
@@ -869,10 +877,27 @@ EXPECT_CALL(customerDatabase, retrieveCustomerNames(_))
         <script src="lib/js/head.min.js"></script>
         <script src="js/reveal.js"></script>
 
-        <script>
+        <script src="js/cytoscape.min.js"></script>
+        <script src="js/dagre.min.js"></script>
+        <script src="js/cytoscape-dagre.js"></script>
+        <script src="js/dep-graph.js"></script>
 
-            // Full list of configuration options available at:
-            // https://github.com/hakimel/reveal.js#configuration
+        <script>
+            // Draw code dependency graphs after Reveal slides have been
+            // initialised
+            Reveal.addEventListener('ready', function(event) {
+                drawDepGraph({
+                    canvasId: "coinFlipCollaborators",
+                    nodes: [
+                        { data: { id: 'CoinFlipper', colour: 'black' } },
+                        { data: { id: 'Rng', colour: 'white' } }
+                    ],
+                    edges: [
+                        { data: { source: 'CoinFlipper', target: 'Rng' } }
+                    ]
+                });
+            } );
+
             Reveal.initialize({
                 controls: true,
                 progress: true,
