@@ -24,11 +24,3 @@ code.medium {
     border: 0px;
     box-shadow: none;
 }
-
-#coinFlipCollaborators {
-    text-align: left !important;
-    width: 100%;
-    height: 200px;
-    padding: 0px;
-    margin: 0px;
-}
