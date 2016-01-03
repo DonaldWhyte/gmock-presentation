@@ -4,7 +4,7 @@ Presentation on Google Mock.
 
 ## Running Presentation
 
-Install dependencies and run serve presentation using a local web server like so:
+Install dependencies and run presentation using a local web server like so:
 
 ```
 npm install
