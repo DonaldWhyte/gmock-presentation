@@ -271,6 +271,22 @@ int main(int argc, char* argv[]) {
                         </p>
                     </section>
 
+                    <section>
+                        <img src="images/whymock1.png" />
+                    </section>
+
+                    <section>
+                        <img src="images/whymock2.png" />
+                    </section>
+
+                    <section>
+                        <img src="images/whymock3.png" />
+                    </section>
+
+                    <section>
+                        <img src="images/whymock4.png" />
+                    </section>
+
                     <!-- TODO
 
                     Should cover:
@@ -362,7 +378,8 @@ CoinFlipper::Result flip = game.flip();
                     </section>
 
                     <section>
-                        <div id="coinFlipCollaborators"></div>
+                        <img src="images/coin-flip-collaborators.png"
+                             width="50%" />
                         <ul>
                             <li>One collaborator -- <code>Rng</code></li>
                             <li>Real RNG is unpredictable</li>
@@ -877,27 +894,7 @@ EXPECT_CALL(customerDatabase, retrieveCustomerNames(_))
         <script src="lib/js/head.min.js"></script>
         <script src="js/reveal.js"></script>
 
-        <script src="js/cytoscape.min.js"></script>
-        <script src="js/dagre.min.js"></script>
-        <script src="js/cytoscape-dagre.js"></script>
-        <script src="js/dep-graph.js"></script>
-
         <script>
-            // Draw code dependency graphs after Reveal slides have been
-            // initialised
-            Reveal.addEventListener('ready', function(event) {
-                drawDepGraph({
-                    canvasId: "coinFlipCollaborators",
-                    nodes: [
-                        { data: { id: 'CoinFlipper', colour: 'black' } },
-                        { data: { id: 'Rng', colour: 'white' } }
-                    ],
-                    edges: [
-                        { data: { source: 'CoinFlipper', target: 'Rng' } }
-                    ]
-                });
-            } );
-
             Reveal.initialize({
                 controls: true,
                 progress: true,
