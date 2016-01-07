@@ -262,13 +262,6 @@ int main(int argc, char* argv[]) {
                     </section>
 
                     <section>
-                        <h2></h2>
-                        <p>
-                            TODO
-                        </p>
-                    </section>
-
-                    <section>
                         <img src="images/whymock1.png" />
                     </section>
 
@@ -282,6 +275,52 @@ int main(int argc, char* argv[]) {
 
                     <section>
                         <img src="images/whymock4.png" />
+                    </section>
+
+                    <section>
+                        <h2>What to Eliminate</h2>
+                        <!-- what to eliminate from unit tests -->
+                        <p>Anything non-deterministic</p>
+                        <ul>
+                            <li>TODO</li>
+                            <li>TODO</li>
+                            <li>TODO</li>
+                            <li>TODO</li>
+                            <li>TODO</li>
+                        </ul>
+
+                        <!-- TODO
+                        See
+                        -->
+                    </section>
+
+                    <!-- *how* to eliminate these things from unit tests -->
+                    <section data-markdown>
+                        ### Solution: Use Test Double
+
+                        * **Test Double** is an object or function, which is substituted for a "real" (production ready) object during testing.
+                        * **Test Double** should appear exactly the same as a "real" production instance to its clients (collaborators).
+                        * Term **"Test Double"** originates from a notion of a _"stunt double"_ in films when viewers do not notice that stunts are performed by a different actor.
+
+                        ![Dummy](images/Crash_Test_Dummy.jpg) ![](images/brad_double_small.jpg)
+                    </section>
+
+                    <section data-markdown>
+                        ## Types
+
+                        * **Stubs** return hard-coded values
+                        * **Spies** record the code's interaction with collaborators
+                            * times method called and passed arguments
+                        * **Mocks** return hard-coded values
+                            * cross between a stub and a spy
+                    </section>
+
+                    <section data-markdown>
+                        **Mocks** are the focus of this talk
+
+                        <!-- WHY?
+
+                        -->?
                     </section>
 
                     <!-- TODO
