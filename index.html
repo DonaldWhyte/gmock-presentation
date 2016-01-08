@@ -261,6 +261,9 @@ int main(int argc, char* argv[]) {
                         <h2>Why Mock?</h2>
                     </section>
 
+                    <!-- EXAMPLE of whhy to mock
+                    -->
+
                     <section>
                         <img src="images/whymock1.png" />
                     </section>
@@ -277,17 +280,19 @@ int main(int argc, char* argv[]) {
                         <img src="images/whymock4.png" />
                     </section>
 
-                    <section>
-                        <h2>What to Eliminate</h2>
+                    <section data-markdown>
                         <!-- what to eliminate from unit tests -->
-                        <p>Anything non-deterministic</p>
-                        <ul>
-                            <li>TODO</li>
-                            <li>TODO</li>
-                            <li>TODO</li>
-                            <li>TODO</li>
-                            <li>TODO</li>
-                        </ul>
+
+                        ## What to Eliminate
+
+                        Anything non-deterministic, that can't be reliably
+                        controlled within the unit test
+
+                        # External data sources (e.g. files, databases)
+                        # Network connections (e.g. services)
+                        # TODO
+                        # TODO
+                        # TODO
 
                         <!-- TODO
                         See
@@ -296,13 +301,14 @@ int main(int argc, char* argv[]) {
 
                     <!-- *how* to eliminate these things from unit tests -->
                     <section data-markdown>
-                        ### Solution: Use Test Double
+                        ## Solution: Use Test Double
 
-                        * **Test Double** is an object or function, which is substituted for a "real" (production ready) object during testing.
-                        * **Test Double** should appear exactly the same as a "real" production instance to its clients (collaborators).
-                        * Term **"Test Double"** originates from a notion of a _"stunt double"_ in films when viewers do not notice that stunts are performed by a different actor.
+                        ![Double](images/brad_double_small.jpg)
 
-                        ![Dummy](images/Crash_Test_Dummy.jpg) ![](images/brad_double_small.jpg)
+                        * A **test double** is an object or function ubstituted for a "real" (production ready) object during testing.
+                        * Should appear exactly the same as a "real" production instance to its clients (collaborators).
+                        * Term originates from a notion of a _"stunt double"_ in films
+                        <!-- when viewers do not notice that stunts are performed by a different actor. -->
                     </section>
 
                     <section data-markdown>
@@ -320,18 +326,12 @@ int main(int argc, char* argv[]) {
 
                         <!-- WHY?
 
-                        -->?
+                        * most flexible
+                        * but also because this talk is about Google Mocks,
+                          which is a testing framework whose core focu :P
+
+                        -->
                     </section>
-
-                    <!-- TODO
-
-                    Should cover:
-                        * motivation mocking (benefits of mocking stuff out)
-                                ^-- get visual here
-                        * test doubles and their types
-                        * core purpose of GMock is...mocks!
-
-                    -->
                 </section>
 
                 <section>
