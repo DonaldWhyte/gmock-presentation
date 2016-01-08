@@ -7,6 +7,11 @@
         distracting slides off the screen.
     -->
 
+    <!--
+        Press S to see the speaker's view, which has times on and extra notes
+        on each slide.
+    -->
+
     <head>
         <meta charset="utf-8">
 
@@ -238,7 +243,6 @@ int main(int argc, char* argv[]) {
 [----------] Global test environment tear-down
 [==========] 4 tests from 2 test cases ran. (3 ms total)
 [  PASSED  ] 4 tests.
-
                         </code></pre>
                     </section>
 
@@ -256,46 +260,132 @@ int main(int argc, char* argv[]) {
                     </section>
                 </section>
 
-                <section data-external="external/cmdtst.html">
-                </section>
-
                 <section>
                     <section>
                         <h2>Why Mock?</h2>
                     </section>
 
                     <section>
-                        <h2></h2>
-                        <p>
-                            TODO
-                        </p>
-                    </section>
-
-                    <section>
                         <img src="images/whymock1.png" />
+                        <aside class="notes">
+                            Here's a component hierarchy.
+                        </aside>
                     </section>
 
                     <section>
                         <img src="images/whymock2.png" />
+                        <aside class="notes">
+                            Suppose we want a test for the red component at
+                            the top there.
+
+                            The component has three dependencies, or collaborators,
+                            which we build and pass into component at construction.
+
+                            These collaborators might be rely on external systems
+                            or require a large amount of setup. This makes testing
+                            the component difficult, because we either have to
+                            ensure these external systems are available and in the
+                            right state, or write lots more test code to setup
+                            the collaborators.
+
+                            Since we aim to write tests for most of our components
+                            (or should), this extra effort builds up and results
+                            in huge amounts of development time taken up by
+                            tests.
+
+                            ...so then we end up just not writing tests. :P
+                        </aside>
                     </section>
 
                     <section>
                         <img src="images/whymock3.png" />
+                        <aside class="notes">
+                            To avoid this, we replace the implementations of
+                            these collaborators which much simpler, fake
+                            implementations.
+                        </aside>
                     </section>
 
                     <section>
                         <img src="images/whymock4.png" />
+                        <aside class="notes">
+                            No more environment dependencies, no more massive
+                            setup. It becomes much quicker and easier to write
+                            the tests.
+                        </aside>
                     </section>
 
-                    <!-- TODO
+                    <section data-markdown data-notes="
+Downsides to testing internal code dependencies:
 
-                    Should cover:
-                        * motivation mocking (benefits of mocking stuff out)
-                                ^-- get visual here
-                        * test doubles and their types
-                        * core purpose of GMock is...mocks!
+* component is tested with mock collaborators that behave like you *think* they do
+* real collaborators may behave differently
+* real collaborators behaviour may *change*
+* unit test w/ mocks won't pick that up
+* still need integration tests to ensure real components work together
 
-                    -->
+Despite these downsides, some believe the cost is worth simpler tests, because
+they:
+
+* encourage developers to write more tests, since it requires less work
+* tests are smaller, generally test one thing
+    * failures easier to understand
+* tests are more maintainable
+    * easy to understand
+    * easy to change
+
+">
+                        ## What to Eliminate
+
+                        Anything non-deterministic that can't be reliably
+                        controlled within the unit test
+
+                        * External data sources (e.g. files, databases)
+                        * Network connections (e.g. services)
+                        * External code dependencies (libraries)
+                        * Internal code dependencies
+                            * simpler test code
+                            * makes individual tests less brittle
+                            * some **downsides** to this
+                    </section>
+
+                    <section data-markdown data-notes="
+This is *how* we eliminate these unwanted dependencies from our tests.
+
+A stunt double in films, where viewers don't notice that stunts are performed by a different actor.
+">
+                        ## Solution: Use Test Double
+
+                        ![Double](images/brad_double_small.jpg)
+
+                        * A **test double** is an object or function ubstituted for a "real" (production ready) object during testing.
+                        * Should appear exactly the same as a "real" production instance to its clients (collaborators).
+                        * Term originates from a notion of a _"stunt double"_ in films
+                    </section>
+
+                    <section data-markdown>
+                        ## Types
+
+                        * **Stubs** return hard-coded values
+                        * **Spies** record the code's interaction with collaborators
+                            * times method called and passed arguments
+                        * **Mocks** return hard-coded values
+                            * cross between a stub and a spy
+                    </section>
+
+                    <section>
+                        <strong>Mocks</strong> are the focus of this talk
+
+                        <aside class="notes">
+                            WHY?
+
+                            * most flexible
+                            * but also because this talk is about Google Mocks,
+                              which is a testing framework whose core focus
+                              is mocking (so why would be talking about
+                              something else :P)
+                        </aside>
+                    </section>
                 </section>
 
                 <section>
@@ -303,16 +393,16 @@ int main(int argc, char* argv[]) {
                         <h2>Google Mock</h2>
                     </section>
 
-                        <section data-markdown>
-                        ## Coin Flipper
-                        ![](images/coin-flip.jpg)
+                    <section data-markdown>
+                    ## Coin Flipper
+                    ![](images/coin-flip.jpg)
 
-                        * A simple game to flip a coin
-                        * `CoinFlipper` class implements our game
-                        * It interacts with a random number generator
-                        * We can change a number generator at runtime
-                        * Goal is to **test** `CoinFlipper`
-                        </section>
+                    * A simple game to flip a coin
+                    * `CoinFlipper` class implements our game
+                    * It interacts with a random number generator
+                    * We can change a number generator at runtime
+                    * Goal is to **test** `CoinFlipper`
+                    </section>
 
                     <section>
                         <h2>Interfaces</h2>
@@ -427,30 +517,15 @@ class MockRng : public Rng {
                         </code></pre>
                     </section>
 
-                    <section>
-                        <h2>Defining Mock Collaborators</h2>
+                    <section data-markdown data-notes="
+If the hit on performance caused by vtable lookups is a serious concern, then one can mock non-virtual methods by making the type being mocked a *template* parameter of the function or class under test.">
+                        ## Defining Mock Collaborators
 
-                        <ul>
-                            <li>
-                                <code>~Rng()</code> must be <code>virtual</code>
-                            </li>
-                            <li>
-                                If <code>generate()</code> is defined in a
-                                superclass, then it must be declared
-                                <code>virtual</code> in that superclass
-                            </li>
-                            <li>
-                                In other words, <strong>you can't mock
-                                non-virtual methods</strong>
-                            </li>
-                            <!--
-                                If the hit on performance caused by vtable
-                                lookups is a serious concern, then one can mock
-                                non-virtual methods by making the type being
-                                mocked a *template* parameter of the function
-                                or class under test.
-                            -->
-                        </ul>
+                        * `~Rng()` must be `virtual`
+                        * If `generate()` is defined in a superclass, then it
+                        must be declared `virtual` in that superclass
+                        * In other words, **you can't mock non-virtual
+                        methods**
                     </section>
 
                     <section>
@@ -518,8 +593,6 @@ ON_CALL(mockObject, method(matchers))
                             Use <code>EXPECT_CALL</code> if you want to verify
                             an object/function is called with a particular set
                             of args
-                            <!-- if the mock is not called the expected
-                                 number of times, the test fails -->
                         </p>
                         <p>
                             Use <code>ON_CALL</code> to specify mock actions
@@ -530,25 +603,29 @@ ON_CALL(mockObject, method(matchers))
                             Use <code>ON_CALL</code> unless you actually want
                             to test a method is called a specific number of
                             times
-
-                            <!--
-                                Justification for rule of thumb:
-
-                                * makes tests depend less on implementation
-                                  details
-                                * for example, if `getCellValue()` is called
-                                  twice instead of once -- count might not
-                                  actually matter as long as visible output
-                                  is the same
-                                * this is important -- using mocks introduces
-                                * the possibility of writing tests that overfit
-                                  the implementation, making the whole test
-                                  suite harder to maintain as it grows
-                                * no one wants to spend the majority of their
-                                  time updating tests when they change a couple
-                                  of lines of implementation
-                            -->
                         </p>
+
+                        <aside class="notes">
+                            EXPECT_CALL
+                            If the mocked method is not called the expected
+                            number of times, the test fails.
+
+                            Justification for rule of thumb:
+
+                            * makes tests depend less on implementation
+                              details
+                            * for example, if `getCellValue()` is called
+                              twice instead of once -- count might not
+                              actually matter as long as visible output
+                              is the same
+                            * this is important -- using mocks introduces
+                            * the possibility of writing tests that overfit
+                              the implementation, making the whole test
+                              suite harder to maintain as it grows
+                            * no one wants to spend the majority of their
+                              time updating tests when they change a couple
+                              of lines of implementation
+                        </aside>
                     </section>
 
                     <section data-markdown>
@@ -856,9 +933,6 @@ EXPECT_CALL(customerDatabase, retrieveCustomerNames(_))
 
                 </section>
 
-                <section data-external="external/putting_it_together.html">
-                </section>
-
                 <section>
                     <section>
                         <h2>Summary</h2>
@@ -866,26 +940,6 @@ EXPECT_CALL(customerDatabase, retrieveCustomerNames(_))
 
                     <!-- TODO: summarise entire talk -->
                 </section>
-
-                <!--
-
-                <section>
-                    <h2>Speaker View</h2>
-                    <p>There's a <a href="https://github.com/hakimel/reveal.js#speaker-notes">speaker view</a>. It includes a timer, preview of the upcoming slide as well as your speaker notes.</p>
-                    <p>Press the <em>S</em> key to try it out.</p>
-
-                    <aside class="notes">
-                        Oh hey, these are some notes. They'll be hidden in your presentation, but you can see them if you open the speaker notes window (hit 's' on your keyboard).
-                    </aside>
-                </section>
-
-                <section>
-                    <h2>Export to PDF</h2>
-                    <p>Presentations can be <a href="https://github.com/hakimel/reveal.js#pdf-export">exported to PDF</a>, here's an example:</p>
-                    <iframe src="https://www.slideshare.net/slideshow/embed_code/42840540" width="445" height="355" frameborder="0" marginwidth="0" marginheight="0" scrolling="no" style="border:3px solid #666; margin-bottom:5px; max-width: 100%;" allowfullscreen> </iframe>
-                </section>
-
-                -->
 
             </div>
 
