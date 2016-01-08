@@ -68,7 +68,7 @@
                             <li>Why Mock?</li>
                             <li>Google Mock</li>
                             <li>Real Life Example</li>
-                            <li>To Mock or Not to Mock</li>
+                            <li>When to Mock</li>
                         </ul>
                     </section>
                 </section>
@@ -585,47 +585,33 @@ ON_CALL(mockObject, method(matchers))
                         </code></pre>
                     </section>
 
-                    <section>
-                        <h2>
-                            <code>ON_CALL</code> or <code>EXPECT_CALL</code>?
-                        </h2>
-                        <p>
-                            Use <code>EXPECT_CALL</code> if you want to verify
-                            an object/function is called with a particular set
-                            of args
-                        </p>
-                        <p>
-                            Use <code>ON_CALL</code> to specify mock actions
-                            when you don't care if the mock is called or not
-                        </p>
-                        <p>
-                            <strong>Rule of Thumb: </strong>
-                            Use <code>ON_CALL</code> unless you actually want
-                            to test a method is called a specific number of
-                            times
-                        </p>
+                    <section data-markdown data-notes="
+EXPECT_CALL -- If the mocked method is not called the expected number of times, the test fails.
 
-                        <aside class="notes">
-                            EXPECT_CALL
-                            If the mocked method is not called the expected
-                            number of times, the test fails.
+* Use `EXPECT_CALL` if you want to verify an object/function is called with a particular set of args
+* Use `ON_CALL` to specify mock actions when you don't care if the mock is called or not
 
-                            Justification for rule of thumb:
+Justification for rule of thumb:
 
-                            * makes tests depend less on implementation
-                              details
-                            * for example, if `getCellValue()` is called
-                              twice instead of once -- count might not
-                              actually matter as long as visible output
-                              is the same
-                            * this is important -- using mocks introduces
-                            * the possibility of writing tests that overfit
-                              the implementation, making the whole test
-                              suite harder to maintain as it grows
-                            * no one wants to spend the majority of their
-                              time updating tests when they change a couple
-                              of lines of implementation
-                        </aside>
+* makes tests depend less on implementation details
+* for example, if `getCellValue()` is called twice instead of once
+  -- count might notactually matter as long as visible output is the same
+* this is important -- using mocks tightly couples tests to the implementation
+* the possibility of writing tests that overfit the implementation,
+  making the whole test suite harder to maintain as it grows
+* no one wants to spend the majority of their time updating tests when they
+  change a couple of lines of implementation
+* just leads to developers not writing tests
+">
+                        ## `ON_CALL` or `EXPECT_CALL`?
+
+                        `ON_CALL` defines stubs
+
+                        `EXPECT_CALL` defines mocks
+
+                        **Rule of Thumb:**
+                        Use `ON_CALL` unless you actually want to test a method
+                        is called a specific number of times
                     </section>
 
                     <section data-markdown>
@@ -933,12 +919,67 @@ EXPECT_CALL(customerDatabase, retrieveCustomerNames(_))
 
                 </section>
 
+                <section data-markdown>
+                    ## When to Mock
+
+                    * Mocks are not a panacea
+                    * Shouldn't be used to replace all collaborators
+                    * TODO
+
+                    * they
+                    * TODO: use stubs (`ON_CALL`)
+                    * TODO
+                </section>
+
                 <section>
-                    <section>
-                        <h2>Summary</h2>
+                    <section data-markdown>
+                        ## Summary
                     </section>
 
-                    <!-- TODO: summarise entire talk -->
+                    <section data-markdown data-notes="
+* combine large set of matchers/actions together to form most test expectations you'll probably need
+* extensible, by defining own matchers/actions
+">
+                        ## Test Doubles
+
+                        * Replace collaborators with **test doubles**, which:
+                            * removes dependencies on non-deterministic behaviour
+                            * reduces setup code in tests
+                        * Makes tests easier to write and maintain
+                        * Use **stubs** to replace collaborators if it's
+                          awkward to use the real thing
+                        * Use **mocks** to replace collaborators when you want
+                          to test the *communication* between components
+                    </section>
+
+                    <section data-markdown data-notes="
+* combine large set of matchers/actions together to form most test expectations you'll probably need
+* extensible, by defining own matchers/actions
+">
+                        ## Google Test and Mock
+
+                        * **Google Test** is a C++ testing framework
+                        * **Google Mock** is a C++ framework for defining stubs/mocks
+                            * large set of matchers/actions
+                            * extensible
+                            * often used in conjunction with Google Test
+                        * Using hand-crafted test implementations may be a
+                          better choice in some circumstances
+                    </section>
+
+                    <section data-markdown data-notes="
+* Martin Fowler wrote an in-depth piece on stubs and mocks, the benefits and downsides of each and when to use them
+* A Brief History of Mock Objects, written by one of the authors of 'Growing Object-Oriented Software, Guided by Tests'
+">
+                        ## Useful Resources
+
+                        * Detailed documentation on GitHub:
+                            * [Google Test](https://github.com/google/googletest/tree/master/googletest/docs)
+                            * [Google Mock](https://github.com/google/googletest/tree/master/googletest/docs)
+                        * [Marks Aren't Stubs](http://martinfowler.com/articles/mocksArentStubs.html)
+                        * [Growing Object-Oriented Software, Guided by Tests](http://www.amazon.co.uk/Growing-Object-Oriented-Software-Guided-Signature/dp/0321503627)
+                        * [A Brief History of Mock Objects](http://www.mockobjects.com/2009/09/brief-history-of-mock-objects.html)
+                    </section>
                 </section>
 
             </div>
