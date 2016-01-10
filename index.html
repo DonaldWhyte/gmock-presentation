@@ -61,40 +61,40 @@
                         </p>
                     </section>
 
-                    <section>
-                        <h2>Outline</h2>
-                        <ul>
-                            <li>Google Test</li>
-                            <li>Why Mock?</li>
-                            <li>Google Mock</li>
-                            <li>Real Life Example</li>
-                            <li>When to Mock</li>
-                        </ul>
+                    <section data-markdown>
+                        ## Outline
+
+                        * Google Test
+                        * Why Mock?
+                        * Google Mock
+                        * Real Life Example
+                        * When to Mock
                     </section>
                 </section>
 
                 <section>
-                    <section>
-                        <h2>Google Test</h2>
-                        <p>
-                            Cross-platform C++ testing framework by Google
-                        </p>
-                        <p>
-                            Commonly used in conjunction with Google Mock
-                        </p>
+                    <section data-markdown>
+                        ## Google Test
                     </section>
 
-                    <section>
-                        <h2>Features</h2>
-                        <ul>
-                            <li>Rich set of assertions</li>
-                            <li>Value-paraterised tests</li>
-                            <li>Type-paraterised tests</li>
-                            <li>Death tests</li>
-                            <li>Test discovery</li>
-                            <li>XML test report generation</li>
-                            <li>Multi-threaded tests</li>
-                        </ul>
+                    <section data-markdown>
+                        ## Google Test
+
+                        Cross-platform C++ testing framework by Google
+
+                        Commonly used in conjunction with Google Mock
+                    </section>
+
+                    <section data-markdown>
+                        ## Features
+
+                        * Rich set of assertions
+                        * Value-paraterised tests
+                        * Type-paraterised tests
+                        * Death tests
+                        * Test discovery
+                        * XML test report generation
+                        * Multi-threaded tests
                     </section>
 
                     <section>
@@ -588,14 +588,25 @@ ON_CALL(mockObject, method(matchers))
                     <section data-markdown data-notes="
 EXPECT_CALL -- If the mocked method is not called the expected number of times, the test fails.
 
-* Use `EXPECT_CALL` if you want to verify an object/function is called with a particular set of args
 * Use `ON_CALL` to specify mock actions when you don't care if the mock is called or not
+* Use `EXPECT_CALL` if you want to verify an object/function is called with a particular set of args -- i.e. you're verifying the *communication*
 
+Difference between testing the output result, or testing *how* we get to that result.
+">
+                        ## `ON_CALL` or `EXPECT_CALL`?
+
+                        * `ON_CALL` defines *stubs*
+                        * `EXPECT_CALL` defines *mocks*
+                        * Tests using mocks become tightly coupled with the
+                          component's implementation
+                    </section>
+
+                    <section data-markdown data-notes="
 Justification for rule of thumb:
 
 * makes tests depend less on implementation details
 * for example, if `getCellValue()` is called twice instead of once
-  -- count might notactually matter as long as visible output is the same
+  -- count might not actually matter as long as visible output is the same
 * this is important -- using mocks tightly couples tests to the implementation
 * the possibility of writing tests that overfit the implementation,
   making the whole test suite harder to maintain as it grows
@@ -603,15 +614,10 @@ Justification for rule of thumb:
   change a couple of lines of implementation
 * just leads to developers not writing tests
 ">
-                        ## `ON_CALL` or `EXPECT_CALL`?
+                        ### Rule of Thumb
 
-                        `ON_CALL` defines stubs
-
-                        `EXPECT_CALL` defines mocks
-
-                        **Rule of Thumb:**
-                        Use `ON_CALL` unless you actually want to test a method
-                        is called a specific number of times
+                        Use `ON_CALL` unless you actually want to test a
+                        method is called a specific number of times
                     </section>
 
                     <section data-markdown>
@@ -917,18 +923,37 @@ EXPECT_CALL(customerDatabase, retrieveCustomerNames(_))
                         </code></pre>
                     </section>
 
-                </section>
+                    <section data-markdown data-notes="
+    * awkward to mock complex data structures -- e.g. tabular, hierarchical data. Much easier to define an in-memory test implementation instead of writing loads of awkward mock expectations
+    * awkward to mock commonly used interfaces -- lots of duplicate mock expectations in different test drivers
 
-                <section data-markdown>
-                    ## When to Mock
+    However, I would argue using Google Mock for stubbing and mocking collaborators is suitable for *most cases*.
 
-                    * Mocks are not a panacea
-                    * Shouldn't be used to replace all collaborators
-                    * TODO
+    We've used it extensively for our SI project, which specifies many different interfaces and different kinds of components, such as:
 
-                    * they
-                    * TODO: use stubs (`ON_CALL`)
-                    * TODO
+
+    * reading/writing from/to databases, caches, files
+    * complex business logic
+    * complex string manipulation
+    * rule-based behaviour
+    * factory construction
+    * asychronous code which uses callbacks
+    * log testing (e.g. for alarming on fatal errors)
+
+    Currently, we haven't hit a situation where it's been a pain to use.
+    ">
+                        ## When to Use Google Mock
+
+                        * Google Mock is not a panacea
+                        * Shouldn't be used to replace all collaborators
+                        * Awkward to use generated mocks in certain situations:
+                            * complex data structures
+                            * commonly used interfaces
+                        * Manually coding test implementations may be better
+                            * ...or just using the real collaborator
+                        * Google Mock **suitable for most cases**
+                    </section>
+
                 </section>
 
                 <section>
