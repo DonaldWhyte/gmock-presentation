@@ -57,7 +57,18 @@
                         <h1>Introduction to Google Mock</h1>
                         <h3>C++ Testing and Mocking Framework</h3>
                         <p>
-                            <small>Created by <a href="http://donaldwhyte.co.uk">Donald Whyte</a> / <a href="http://twitter.com/donald_whyte">@donald_whyte</a></small>
+                            <small>
+                                Created by <a href="http://donaldwhyte.co.uk">Donald Whyte</a>
+                                / <a href="http://twitter.com/donald_whyte">@donald_whyte</a>
+                            </small>
+                            <br />
+                            <small>
+                                Credit to <strong>Denis Cheklov</strong> for
+                                his contributions
+                            </small>
+                        </p>
+                        <p>
+
                         </p>
                     </section>
 
@@ -89,8 +100,8 @@
                         ## Features
 
                         * Rich set of assertions
-                        * Value-paraterised tests
-                        * Type-paraterised tests
+                        * Value-parametrised tests
+                        * Type-parametrised tests
                         * Death tests
                         * Test discovery
                         * XML test report generation
@@ -154,18 +165,22 @@ TEST(StockRepository, ShouldSuccessfullyAddNewStock) {
 
                     <section>
                         <h2>Test Case</h2>
-                        <pre><code class="hljs cpp" data-trim>
+                        <pre><code class="hljs cpp medium" data-trim>
 class StockRepositoryTests : public ::testing::Test {
   protected:
     StockRepository d_repo;
 
   public:
-    void SetUp() {
+    StockRepositoryTests() { } // #1
+
+    ~StockRepositoryTests() { } // #4
+
+    void SetUp() { // #2
         // initialise test data, mocks and objects under test
         d_repo.addStock("APPL", 50.5);
     }
 
-    void TearDown() {
+    void TearDown() { // #3
         // cleanup used resources
     }
 };
@@ -358,7 +373,7 @@ A stunt double in films, where viewers don't notice that stunts are performed by
 
                         ![Double](images/brad_double_small.jpg)
 
-                        * A **test double** is an object or function ubstituted for a "real" (production ready) object during testing.
+                        * A **test double** is an object or function substituted for a "real" (production ready) object during testing.
                         * Should appear exactly the same as a "real" production instance to its clients (collaborators).
                         * Term originates from a notion of a _"stunt double"_ in films
                     </section>
@@ -369,7 +384,7 @@ A stunt double in films, where viewers don't notice that stunts are performed by
                         * **Stubs** return hard-coded values
                         * **Spies** record the code's interaction with collaborators
                             * times method called and passed arguments
-                        * **Mocks** return hard-coded values
+                        * **Mocks** return hard-coded values and verify interaction
                             * cross between a stub and a spy
                     </section>
 
@@ -393,12 +408,14 @@ A stunt double in films, where viewers don't notice that stunts are performed by
                         <h2>Google Mock</h2>
                     </section>
 
-                    <section data-markdown>
+                    <section data-markdown data-notes="
+We can change a number generator at runtime, using dependency injection
+">
                     ## Coin Flipper
                     ![](images/coin-flip.jpg)
 
                     * A simple game to flip a coin
-                    * `CoinFlipper` class implements our game
+                    * `CoinFlipper` class implements the game
                     * It interacts with a random number generator
                     * We can change a number generator at runtime
                     * Goal is to **test** `CoinFlipper`
@@ -443,11 +460,7 @@ CoinFlipper::Result CoinFlipper::flipCoin() const
     const double val = d_rng->generate(0.0, 1.0);
     BSLS_ASSERT(0.0 <= val && val <= 1.0);
 
-    if (val < 0.5) {
-        return HEADS;
-    } else {
-        return TAILS;
-    }
+    return (val < 0.5) ? HEADS : TAILS;
 }
                         </code></pre>
                     </section>
@@ -458,7 +471,7 @@ CoinFlipper::Result CoinFlipper::flipCoin() const
 ... generator; // Construct a particular generator
 
 // Create a game
-CoinFlipper game(generator);
+CoinFlipper game(&generator);
 
 // Start playing
 CoinFlipper::Result flip = game.flip();
@@ -500,7 +513,9 @@ CoinFlipper::Result flip = game.flip();
                         </ul>
                     </section>
 
-                    <section>
+                    <section data-notes="
+MOCK_METHOD macro generates an implementation of `generate()`
+">
                         <h2>Defining Mock Collaborators</h2>
 
                         <pre><code class="hljs cpp" data-trim>
@@ -510,8 +525,6 @@ MOCK_CONST_METHOD[n](methodName, returnType(arg1Type, ..., argNType));
                         <pre><code class="hljs cpp" data-trim>
 class MockRng : public Rng {
   public:
-    // generates implementation of
-    // "double generate(double min, double max)"
     MOCK_METHOD2(generate, double(double, double));
 };
                         </code></pre>
@@ -597,7 +610,7 @@ Difference between testing the output result, or testing *how* we get to that re
 
                         * `ON_CALL` defines *stubs*
                         * `EXPECT_CALL` defines *mocks*
-                        * Tests using mocks become tightly coupled with the
+                        * Tests using loads of mocks become tightly coupled with the
                           component's implementation
                     </section>
 
@@ -666,7 +679,7 @@ TEST(CoinFlipper, ShouldReturnHeadsIfRandValueIsLessThanProbability) {
     CoinFlipper coinFlipper(&rng);
 
     // 4) Run code under test
-    Result result = coinFlipper.flipCoin();
+    CoinFlipper::Result result = coinFlipper.flipCoin();
 
     // 5) Check output (using Google Test or some other framework)
     EXPECT_EQ(CoinFlipper::HEADS, result);
@@ -680,8 +693,8 @@ TEST(CoinFlipper, ShouldReturnHeadsIfRandValueIsLessThanProbability) {
                         <h2>Parametrised Tests</h2>
                         <pre><code class="hljs cpp small" data-trim>
 TEST_P(CoinFlipper, CoinFlip) {
-    const double randomVal = GetParam()->first;
-    const CoinFlipper::Result = GetParam()->second;
+    const double randomVal = GetParam().first;
+    const CoinFlipper::Result expectedResult = GetParam().second;
 
     MockRng rng;
     EXPECT_CALL(rng, generate(DoubleEq(0.0), DoubleEq(1.0)))
@@ -689,7 +702,7 @@ TEST_P(CoinFlipper, CoinFlip) {
         .WillOnce(Return(randomVal));
 
     CoinFlipper coinFlipper(&rng);
-    Result result = coinFlipper.flipCoin();
+    CoinFlipper::Result result = coinFlipper.flipCoin();
 
     EXPECT_EQ(expectedResult, result);
 }
@@ -700,7 +713,7 @@ INSTANTIATE_TEST_CASE_P(ValidRandomNumberGenerated, CoinFlipper,
                                bsl::make_pair(0.49999, CoinFlipper::HEADS),
                                bsl::make_pair(0.5, CoinFlipper::TAILS),
                                bsl::make_pair(0.75, CoinFlipper::TAILS),
-                               bsl::make_pair(1.0, CoinFlipper::TAILS));
+                               bsl::make_pair(1.0, CoinFlipper::TAILS)));
                         </code></pre>
                     </section>
 
@@ -748,7 +761,7 @@ ASSERT_THAT("my name is Donald", HasSubstr("Donald"));
                                 </tr>
                                 <tr>
                                     <td><code>IsNull()</code></td>
-                                    <td>null raw/smart pointers)</td>
+                                    <td>null raw/smart pointers</td>
                                 </tr>
                                 <tr>
                                     <td><code>StrCaseEq(string)</code></td>
@@ -808,13 +821,13 @@ ASSERT_THAT("my name is Donald", HasSubstr("Donald"));
                         <pre><code class="hljs cpp" data-trim>
 // writeVec() should be called once, with a 2-element a vector where:
 //   * one element ~= 0.53
-//   * one element that's not 1.0, but can
+//   * one element that's not 1.0
 EXPECT_CALL(writer, writeVec(UnorderedElementsAre(DoubleEq(0.53),
                                                   Not(DoubleEq(1.0)))))
     .Times(Exactly(1)).WillOnce(Return(0));
 
 // writePerson() should be called once, with a person named Donald
-// (case-insensitive) who is 1s 102 years old
+// (case-insensitive) who is 102 years old
 EXPECT_CALL(writer, savePersonToFile(
                        AllOf(
                              Property(&Person::name, StrCaseEq("donald")),
@@ -923,6 +936,43 @@ EXPECT_CALL(customerDatabase, retrieveCustomerNames(_))
                         </code></pre>
                     </section>
 
+                </section>
+
+                <section>
+                    <section data-markdown>
+                        ## Summary
+                    </section>
+
+                    <section data-markdown data-notes="
+* combine large set of matchers/actions together to form most test expectations you'll probably need
+* extensible, by defining own matchers/actions
+">
+                        ## Test Doubles
+
+                        * Replace collaborators with **test doubles**, which:
+                            * removes dependencies on non-deterministic behaviour
+                            * reduces setup code in tests
+                        * Makes tests easier to write and maintain
+                        * Use **stubs** if it's awkward to use the real thing
+                        * Use **mocks** when you want to test the
+                        *communication* between components
+                    </section>
+
+
+                    <section data-markdown data-notes="
+* combine large set of matchers/actions together to form most test expectations you'll probably need
+* extensible, by defining own matchers/actions
+">
+                        ## Google Test and Mock
+
+                        * **Google Test** is a C++ testing framework
+                        * **Google Mock** is a C++ framework for defining
+                          stubs/mocks
+                            * large set of matchers/actions
+                            * extensible
+                            * often used in conjunction with Google Test
+                    </section>
+
                     <section data-markdown data-notes="
     * awkward to mock complex data structures -- e.g. tabular, hierarchical data. Much easier to define an in-memory test implementation instead of writing loads of awkward mock expectations
     * awkward to mock commonly used interfaces -- lots of duplicate mock expectations in different test drivers
@@ -948,52 +998,14 @@ EXPECT_CALL(customerDatabase, retrieveCustomerNames(_))
                         * Awkward to use generated mocks in certain situations:
                             * complex data structures
                             * commonly used interfaces
-                        * Manually coding test implementations may be better
-                            * ...or just using the real collaborator
+                        * Using hand-crafted test implementations is a better
+                          choice in some circumstances
                         * Google Mock **suitable for most cases**
                     </section>
 
-                </section>
-
-                <section>
-                    <section data-markdown>
-                        ## Summary
-                    </section>
-
-                    <section data-markdown data-notes="
-* combine large set of matchers/actions together to form most test expectations you'll probably need
-* extensible, by defining own matchers/actions
-">
-                        ## Test Doubles
-
-                        * Replace collaborators with **test doubles**, which:
-                            * removes dependencies on non-deterministic behaviour
-                            * reduces setup code in tests
-                        * Makes tests easier to write and maintain
-                        * Use **stubs** to replace collaborators if it's
-                          awkward to use the real thing
-                        * Use **mocks** to replace collaborators when you want
-                          to test the *communication* between components
-                    </section>
-
-                    <section data-markdown data-notes="
-* combine large set of matchers/actions together to form most test expectations you'll probably need
-* extensible, by defining own matchers/actions
-">
-                        ## Google Test and Mock
-
-                        * **Google Test** is a C++ testing framework
-                        * **Google Mock** is a C++ framework for defining stubs/mocks
-                            * large set of matchers/actions
-                            * extensible
-                            * often used in conjunction with Google Test
-                        * Using hand-crafted test implementations may be a
-                          better choice in some circumstances
-                    </section>
 
                     <section data-markdown data-notes="
 * Martin Fowler wrote an in-depth piece on stubs and mocks, the benefits and downsides of each and when to use them
-* A Brief History of Mock Objects, written by one of the authors of 'Growing Object-Oriented Software, Guided by Tests'
 ">
                         ## Useful Resources
 
@@ -1001,8 +1013,8 @@ EXPECT_CALL(customerDatabase, retrieveCustomerNames(_))
                             * [Google Test](https://github.com/google/googletest/tree/master/googletest/docs)
                             * [Google Mock](https://github.com/google/googletest/tree/master/googletest/docs)
                         * [Marks Aren't Stubs](http://martinfowler.com/articles/mocksArentStubs.html)
+                            * *classical* vs. *mockist* testing
                         * [Growing Object-Oriented Software, Guided by Tests](http://www.amazon.co.uk/Growing-Object-Oriented-Software-Guided-Signature/dp/0321503627)
-                        * [A Brief History of Mock Objects](http://www.mockobjects.com/2009/09/brief-history-of-mock-objects.html)
                     </section>
                 </section>
 
