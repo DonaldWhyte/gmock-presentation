@@ -156,15 +156,15 @@ TEST(StockRepository, ShouldSuccessfullyAddNewStock) {
     // Ensure it can be retrieved
     Stock* addedStock = repo.stock("IBM");
     ASSERT_TRUE(addedStock);
-    EXPECT_EQ("IBM", stock->name());
-    EXPECT_DOUBLE_EQ(4.74, stock->price());
+    EXPECT_EQ("IBM", addedStock->name());
+    EXPECT_DOUBLE_EQ(4.74, addedStock->price());
 }
                         </code></pre>
                     </section>
 
 
                     <section>
-                        <h2>Test Case</h2>
+                        <h2>Test Fixture</h2>
                         <pre><code class="hljs cpp medium" data-trim>
 class StockRepositoryTests : public ::testing::Test {
   protected:
@@ -177,7 +177,7 @@ class StockRepositoryTests : public ::testing::Test {
 
     void SetUp() { // #2
         // initialise test data, mocks and objects under test
-        d_repo.addStock("APPL", 50.5);
+        d_repo.addStock("AAPL", 50.5);
     }
 
     void TearDown() { // #3
@@ -188,7 +188,7 @@ class StockRepositoryTests : public ::testing::Test {
                     </section>
 
                     <section>
-                        <h2>Test Case</h2>
+                        <h2>Test Fixture</h2>
                         <pre><code class="hljs cpp" data-trim>
 TEST_F(StockRepositoryTests, TotalStockCountReflectsNumStocksInRepo) {
     EXPECT_EQ(1u, d_repo.numStocks());
@@ -197,12 +197,12 @@ TEST_F(StockRepositoryTests, TotalStockCountReflectsNumStocksInRepo) {
                         <pre><code class="hljs cpp" data-trim>
 TEST_F(StockRepositoryTests, ShouldFailToAddStockWithDuplicateName) {
     // Try to add stock that already exists
-    const int rc = d_repo.addStock("APPL", 242.53);
+    const int rc = d_repo.addStock("AAPL", 242.53);
     EXPECT_NE(0, rc);
     // Ensure price was not overwritten
-    Stock* unchangedStock = repo.stock("APPL");
+    Stock* unchangedStock = repo.stock("AAPL");
     ASSERT_TRUE(unchangedStock);
-    EXPECT_EQ("APPL", unchangedStock->name());
+    EXPECT_EQ("AAPL", unchangedStock->name());
     EXPECT_DOUBLE_EQ(50.5, unchangedStock->price());
     // Ensure stock count was not changed
     EXPECT_EQ(1u, d_repo.numStocks());
@@ -1012,7 +1012,7 @@ EXPECT_CALL(customerDatabase, retrieveCustomerNames(_))
                         * Detailed documentation on GitHub:
                             * [Google Test](https://github.com/google/googletest/tree/master/googletest/docs)
                             * [Google Mock](https://github.com/google/googletest/tree/master/googletest/docs)
-                        * [Marks Aren't Stubs](http://martinfowler.com/articles/mocksArentStubs.html)
+                        * [Mocks Aren't Stubs](http://martinfowler.com/articles/mocksArentStubs.html)
                             * *classical* vs. *mockist* testing
                         * [Growing Object-Oriented Software, Guided by Tests](http://www.amazon.co.uk/Growing-Object-Oriented-Software-Guided-Signature/dp/0321503627)
                     </section>
