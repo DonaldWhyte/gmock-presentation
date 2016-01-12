@@ -1,10 +1,12 @@
 # Introduction to Google Mock
 
-Presentation on Google Mock.
+### [View Presentation](http://donaldwhyte.github.io/gmock-presentation/)
+
+Presentation on Google Mock, introducing the Google Test/Mock frameworks and the advantages/disadvantages of using mocks.
 
 ## Running Presentation
 
-Install dependencies and run presentation using a local web server like so:
+You can also run the presentation on a local web server. Clone this repository and run the presentation like so:
 
 ```
 npm install
