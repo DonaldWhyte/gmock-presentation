@@ -1,0 +1,1057 @@
+<!doctype html>
+<html lang="en">
+
+    <!--
+        Press B or . on your keyboard to pause the presentation.
+        This is helpful when you're on stage and want to take
+        distracting slides off the screen.
+    -->
+
+    <!--
+        Press S to see the speaker's view, which has times on and extra notes
+        on each slide.
+    -->
+
+    <head>
+        <meta charset="utf-8">
+
+        <title>Introduction to Google Mock</title>
+
+        <meta name="description" content="Introduction to Google Mock, a test and mocking framework for C++">
+        <meta name="author" content="Donald Whyte">
+
+        <meta name="apple-mobile-web-app-capable" content="yes">
+        <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, minimal-ui">
+
+        <link rel="stylesheet" href="css/reveal.css">
+        <link rel="stylesheet" href="css/theme/white.css" id="theme">
+        <link rel="stylesheet" href="css/custom.css">
+
+        <!-- Code syntax highlighting -->
+        <link rel="stylesheet" href="lib/css/zenburn.css">
+
+        <!-- Printing and PDF exports -->
+        <script>
+            var link = document.createElement( 'link' );
+            link.rel = 'stylesheet';
+            link.type = 'text/css';
+            link.href = window.location.search.match( /print-pdf/gi ) ? 'css/print/pdf.css' : 'css/print/paper.css';
+            document.getElementsByTagName( 'head' )[0].appendChild( link );
+        </script>
+
+        <!--[if lt IE 9]>
+        <script src="lib/js/html5shiv.js"></script>
+        <![endif]-->
+    </head>
+
+    <body>
+
+        <div class="reveal">
+
+            <!-- Any section element inside of this container is displayed as a slide -->
+            <div class="slides">
+                <section>
+                    <section>
+                        <h1>Introduction to Google Mock</h1>
+                        <h3>C++ Testing and Mocking Framework</h3>
+                        <p>
+                            <small>
+                                Created by <a href="http://donaldwhyte.co.uk">Donald Whyte</a>
+                                / <a href="http://twitter.com/donald_whyte">@donald_whyte</a>
+                            </small>
+                            <br />
+                            <small>
+                                Credit to <strong>Denis Cheklov</strong> for
+                                his contributions
+                            </small>
+                        </p>
+                        <p>
+
+                        </p>
+                    </section>
+
+                    <section data-markdown>
+                        ## Outline
+
+                        * Google Test
+                        * Why Mock?
+                        * Google Mock
+                        * Real Life Example
+                        * When to Mock
+                    </section>
+                </section>
+
+                <section>
+                    <section data-markdown>
+                        ## Google Test
+                    </section>
+
+                    <section data-markdown>
+                        ## Google Test
+
+                        Cross-platform C++ testing framework by Google
+
+                        Commonly used in conjunction with Google Mock
+                    </section>
+
+                    <section data-markdown>
+                        ## Features
+
+                        * Rich set of assertions
+                        * Value-parametrised tests
+                        * Type-parametrised tests
+                        * Death tests
+                        * Test discovery
+                        * XML test report generation
+                        * Multi-threaded tests
+                    </section>
+
+                    <section>
+                        <h2>Assertion Macros</h2>
+                        <pre><code class="hljs cpp" data-trim>
+ASSERT_EQ(5, 5);
+ASSERT_GE(5, 0);
+ASSERT_FLOAT_EQ(4.4, 4.4444444287381217);
+ASSERT_TRUE(somePtr);
+ASSERT_EQ(c1.size(), c2.size())
+    << "Vectors c1 and c2 are of unequal length";
+
+ASSERT_THROW(c1.at(47374), std::out_of_range);
+
+ASSERT_DEATH(c1[47374], "Assertion failed:*");
+                        </code></pre>
+                    </section>
+
+                    <section>
+                        <h2>EXPECT_* and ASSERT_*</h2>
+                        <pre><code class="hljs cpp" data-trim>
+// assertions abort test if they fail
+ASSERT_TRUE(somePtr);
+// even if expectations fail, the test continues
+// allows multiple failures to be recorded in one test pass
+EXPECT_EQ("donald", somePtr->name());
+EXPECT_EQ(105, somePtr->age());
+                        </code></pre>
+                    </section>
+
+                    <section>
+                        <h2>Test</h2>
+                        <pre><code class="hljs cpp" data-trim>
+TEST(CaseName, TestName) {
+
+}
+                        </code></pre>
+                        <pre><code class="hljs cpp" data-trim>
+TEST(StockRepository, ShouldSuccessfullyAddNewStock) {
+    StockRepository repo;
+
+    // Ensure stock can't be retrieved initially
+    Stock* nonExistentStock = repo.stock("IBM");
+    EXPECT_FALSE(nonExistentStock);
+    // Add stock
+    const int rc = repo.addStock("IBM", 4.74);
+    EXPECT_EQ(0, rc);
+    // Ensure it can be retrieved
+    Stock* addedStock = repo.stock("IBM");
+    ASSERT_TRUE(addedStock);
+    EXPECT_EQ("IBM", addedStock->name());
+    EXPECT_DOUBLE_EQ(4.74, addedStock->price());
+}
+                        </code></pre>
+                    </section>
+
+
+                    <section>
+                        <h2>Test Fixture</h2>
+                        <pre><code class="hljs cpp medium" data-trim>
+class StockRepositoryTests : public ::testing::Test {
+  protected:
+    StockRepository d_repo;
+
+  public:
+    StockRepositoryTests() { } // #1
+
+    ~StockRepositoryTests() { } // #4
+
+    void SetUp() { // #2
+        // initialise test data, mocks and objects under test
+        d_repo.addStock("AAPL", 50.5);
+    }
+
+    void TearDown() { // #3
+        // cleanup used resources
+    }
+};
+                        </code></pre>
+                    </section>
+
+                    <section>
+                        <h2>Test Fixture</h2>
+                        <pre><code class="hljs cpp" data-trim>
+TEST_F(StockRepositoryTests, TotalStockCountReflectsNumStocksInRepo) {
+    EXPECT_EQ(1u, d_repo.numStocks());
+}
+                        </code></pre>
+                        <pre><code class="hljs cpp" data-trim>
+TEST_F(StockRepositoryTests, ShouldFailToAddStockWithDuplicateName) {
+    // Try to add stock that already exists
+    const int rc = d_repo.addStock("AAPL", 242.53);
+    EXPECT_NE(0, rc);
+    // Ensure price was not overwritten
+    Stock* unchangedStock = repo.stock("AAPL");
+    ASSERT_TRUE(unchangedStock);
+    EXPECT_EQ("AAPL", unchangedStock->name());
+    EXPECT_DOUBLE_EQ(50.5, unchangedStock->price());
+    // Ensure stock count was not changed
+    EXPECT_EQ(1u, d_repo.numStocks());
+}
+                        </code></pre>
+                    </section>
+
+                    <section>
+                        <h2>Test Discovery</h2>
+                        <pre><code class="hljs cpp" data-trim>
+.
+..
+src/
+tests/
+    finprogtests.m.cpp
+    Makefile
+    finprog_stock.cpp
+    finprog_stockrepository.cpp
+    ...
+
+                        </code></pre>
+                        <pre><code class="hljs cpp" data-trim>
+// finprogtests.m.cpp
+#include &lt;gtest/gtest.h&gt;
+
+int main(int argc, char* argv[]) {
+    ::testing::InitGoogleTest(&argc, argv);
+    return RUN_ALL_TESTS();
+}
+                        </code></pre>
+                    </section>
+
+                    <section>
+                        <h2>Running Tests</h2>
+                        <pre><code class="hljs small" data-trim>
+./finprogtests
+[==========] Running 4 tests from 2 test cases.
+[----------] Global test environment set-up.
+[----------] 3 tests from StockRepositoryTests
+[ RUN      ] StockRepositoryTests.TotalStockCountReflectsNumStocksInRepo
+[       OK ] StockRepositoryTests.TotalStockCountReflectsNumStocksInRepo (0 ms)
+[ RUN      ] StockRepositoryTests.ShouldFailToAddStockWithDuplicateName
+[       OK ] StockRepositoryTests.ShouldFailToAddStockWithDuplicateName (1 ms)
+[----------] 2 tests from StockRepositoryTests (1 ms total)
+
+[----------] 2 tests from StockTests
+[ RUN      ] StockTests.InitialisedCorrectly
+[       OK ] StockTests.InitialisedCorrectly (1 ms)
+[ RUN      ] StockTests.PrintSuccessful
+[       OK ] StockTests.PrintSuccessful (1 ms)
+[----------] 2 tests from StockTests (2 ms total)
+
+[----------] Global test environment tear-down
+[==========] 4 tests from 2 test cases ran. (3 ms total)
+[  PASSED  ] 4 tests.
+                        </code></pre>
+                    </section>
+
+                    <section>
+                        <h2>Command Line Parameters</h2>
+                        <h8>Repeat test suite multiple times</h8>
+                        <!-- Useful for debugging race conditions -->
+                        <pre><code class="hljs cpp" data-trim>
+./finprogtests --gtest_repeat=100
+                        </code></pre>
+                        <h8>Run specific tests (regex match)</h8>
+                        <pre><code class="hljs cpp" data-trim>
+./finprogtests --gtest_filter=StockRepositoryTests.*
+                        </code></pre>
+                    </section>
+                </section>
+
+                <section>
+                    <section>
+                        <h2>Why Mock?</h2>
+                    </section>
+
+                    <section>
+                        <img src="images/whymock1.png" />
+                        <aside class="notes">
+                            Here's a component hierarchy.
+                        </aside>
+                    </section>
+
+                    <section>
+                        <img src="images/whymock2.png" />
+                        <aside class="notes">
+                            Suppose we want a test for the red component at
+                            the top there.
+
+                            The component has three dependencies, or collaborators,
+                            which we build and pass into component at construction.
+
+                            These collaborators might be rely on external systems
+                            or require a large amount of setup. This makes testing
+                            the component difficult, because we either have to
+                            ensure these external systems are available and in the
+                            right state, or write lots more test code to setup
+                            the collaborators.
+
+                            Since we aim to write tests for most of our components
+                            (or should), this extra effort builds up and results
+                            in huge amounts of development time taken up by
+                            tests.
+
+                            ...so then we end up just not writing tests. :P
+                        </aside>
+                    </section>
+
+                    <section>
+                        <img src="images/whymock3.png" />
+                        <aside class="notes">
+                            To avoid this, we replace the implementations of
+                            these collaborators which much simpler, fake
+                            implementations.
+                        </aside>
+                    </section>
+
+                    <section>
+                        <img src="images/whymock4.png" />
+                        <aside class="notes">
+                            No more environment dependencies, no more massive
+                            setup. It becomes much quicker and easier to write
+                            the tests.
+                        </aside>
+                    </section>
+
+                    <section data-markdown data-notes="
+Downsides to testing internal code dependencies:
+
+* component is tested with mock collaborators that behave like you *think* they do
+* real collaborators may behave differently
+* real collaborators behaviour may *change*
+* unit test w/ mocks won't pick that up
+* still need integration tests to ensure real components work together
+
+Despite these downsides, some believe the cost is worth simpler tests, because
+they:
+
+* encourage developers to write more tests, since it requires less work
+* tests are smaller, generally test one thing
+    * failures easier to understand
+* tests are more maintainable
+    * easy to understand
+    * easy to change
+
+">
+                        ## What to Eliminate
+
+                        Anything non-deterministic that can't be reliably
+                        controlled within the unit test
+
+                        * External data sources (e.g. files, databases)
+                        * Network connections (e.g. services)
+                        * External code dependencies (libraries)
+                        * Internal code dependencies
+                            * simpler test code
+                            * makes individual tests less brittle
+                            * some **downsides** to this
+                    </section>
+
+                    <section data-markdown data-notes="
+This is *how* we eliminate these unwanted dependencies from our tests.
+
+A stunt double in films, where viewers don't notice that stunts are performed by a different actor.
+">
+                        ## Solution: Use Test Double
+
+                        ![Double](images/brad_double_small.jpg)
+
+                        * A **test double** is an object or function substituted for a "real" (production ready) object during testing.
+                        * Should appear exactly the same as a "real" production instance to its clients (collaborators).
+                        * Term originates from a notion of a _"stunt double"_ in films
+                    </section>
+
+                    <section data-markdown>
+                        ## Types
+
+                        * **Stubs** return hard-coded values
+                        * **Spies** record the code's interaction with collaborators
+                            * times method called and passed arguments
+                        * **Mocks** return hard-coded values and verify interaction
+                            * cross between a stub and a spy
+                    </section>
+
+                    <section>
+                        <strong>Mocks</strong> are the focus of this talk
+
+                        <aside class="notes">
+                            WHY?
+
+                            * most flexible
+                            * but also because this talk is about Google Mocks,
+                              which is a testing framework whose core focus
+                              is mocking (so why would be talking about
+                              something else :P)
+                        </aside>
+                    </section>
+                </section>
+
+                <section>
+                    <section>
+                        <h2>Google Mock</h2>
+                    </section>
+
+                    <section data-markdown data-notes="
+We can change a number generator at runtime, using dependency injection
+">
+                    ## Coin Flipper
+                    ![](images/coin-flip.jpg)
+
+                    * A simple game to flip a coin
+                    * `CoinFlipper` class implements the game
+                    * It interacts with a random number generator
+                    * We can change a number generator at runtime
+                    * Goal is to **test** `CoinFlipper`
+                    </section>
+
+                    <section>
+                        <h2>Interfaces</h2>
+                        <pre><code class="hljs cpp" data-trim>
+class Rng {
+  public:
+    virtual ~Rng();
+    virtual double generate(double min, double max) = 0;
+};
+                        </code></pre>
+                        <pre><code class="hljs cpp" data-trim>
+class CoinFlipper {
+  private:
+    Rng* d_rng; // held, not owned
+
+  public:
+    enum Result {
+        HEADS = 0,
+        TAILS = 1
+    };
+
+    explicit CoinFlipper(Rng* rng);
+    Result flipCoin() const;
+};
+                        </code></pre>
+                    </section>
+
+                    <section>
+                        <h2>Implementation</h2>
+                        <pre><code class="hljs cpp" data-trim>
+CoinFlipper::CoinFlipper(Rng* rng) : d_rng(rng)
+{
+    BSLS_ASSERT(d_rng);
+}
+
+CoinFlipper::Result CoinFlipper::flipCoin() const
+{
+    const double val = d_rng->generate(0.0, 1.0);
+    BSLS_ASSERT(0.0 <= val && val <= 1.0);
+
+    return (val < 0.5) ? HEADS : TAILS;
+}
+                        </code></pre>
+                    </section>
+
+                    <section>
+                        <h2>Playing the Game</h2>
+                        <pre><code class="hljs cpp" data-trim>
+... generator; // Construct a particular generator
+
+// Create a game
+CoinFlipper game(&generator);
+
+// Start playing
+CoinFlipper::Result flip = game.flip();
+                        </code></pre>
+                        <code>flip</code> is either
+                        <code>HEADS</code> or <code>TAILS</code>
+                    </section>
+
+                    <section>
+                        <img src="images/coin-flip-collaborators.png"
+                             width="50%" />
+                        <ul>
+                            <li>One collaborator -- <code>Rng</code></li>
+                            <li>Real RNG is unpredictable</li>
+                            <li>
+                                We want to test <code>CoinFlipper</code>
+                                produces both results
+                                <ul>
+                                    <li>we also want these tests to be repeatable</li>
+                                    <li>without relying on an external environment</li>
+                                </ul>
+                            </li>
+                            <li>Have to mock <code>Rng</code></li>
+                        </ul>
+                    </section>
+
+                    <section>
+                        <h2>Google Mock to the Rescue!</h2>
+                        <ul>
+                            <li>create mock classes using simple macros</li>
+                            <li>
+                                rich set of <strong>matchers</strong> and
+                                <strong>actions</strong>
+                            </li>
+                            <li>
+                                easily extensible by users to provide even
+                                richer features
+                            </li>
+                        </ul>
+                    </section>
+
+                    <section data-notes="
+MOCK_METHOD macro generates an implementation of `generate()`
+">
+                        <h2>Defining Mock Collaborators</h2>
+
+                        <pre><code class="hljs cpp" data-trim>
+MOCK_METHOD[n](methodName, returnType(arg1Type, ..., argNType));
+MOCK_CONST_METHOD[n](methodName, returnType(arg1Type, ..., argNType));
+                        </code></pre>
+                        <pre><code class="hljs cpp" data-trim>
+class MockRng : public Rng {
+  public:
+    MOCK_METHOD2(generate, double(double, double));
+};
+                        </code></pre>
+                    </section>
+
+                    <section data-markdown data-notes="
+If the hit on performance caused by vtable lookups is a serious concern, then one can mock non-virtual methods by making the type being mocked a *template* parameter of the function or class under test.">
+                        ## Defining Mock Collaborators
+
+                        * `~Rng()` must be `virtual`
+                        * If `generate()` is defined in a superclass, then it
+                        must be declared `virtual` in that superclass
+                        * In other words, **you can't mock non-virtual
+                        methods**
+                    </section>
+
+                    <section>
+                        <h2>Setting Expectations</h2>
+                        <pre><code class="hljs cpp" data-trim>
+// test fails in `generate()` is not called exactly once with
+// `min = 0.0` and `max = 1.0`
+MockRng rng;
+EXPECT_CALL(rng, generate(DoubleEq(0.0), DoubleEq(1.0))
+    .Times(Exactly(1))
+    .WillOnce(Return(0.25));
+                        </code></pre>
+                        <pre><code class="hljs cpp" data-trim>
+EXPECT_CALL(mockObject, method(arg1Matcher, ..., argNMatcher))
+    .Times(cardinality)          // 0 or 1
+    .InSequence(sequences)       // 0+
+    .WillOnce(action)            // 0+
+    .WillRepeatedly(action)      // 0 or 1
+                        </code></pre>
+                    </section>
+
+                    <section>
+                        <h2>Full Expectation Format</h2>
+                        <pre><code class="hljs cpp">
+EXPECT_CALL(mockObject, method(arg1Matcher, ..., argNMatcher))
+    .With(multiArgumentMatcher)  // 0 or 1
+    .Times(cardinality)          // 0 or 1
+    .InSequence(sequences)       // 0+
+    .After(expectations)         // 0+
+    .WillOnce(action)            // 0+
+    .WillRepeatedly(action)      // 0 or 1
+    .RetiresOnSaturation();      // 0 or 1
+                        </code></pre>
+                    </section>
+
+                    <section>
+                        <h2>Default Actions</h2>
+
+                        <p>
+                            Specify default actions a mock should take, without
+                            setting strict expectations on whether they should
+                            be called
+                        </p>
+
+                        <pre><code class="hljs cpp" data-trim>
+// Test passes regardless of whether `rng.generate()` is called or not.
+// here. This just sets the default action (return `min` argument back
+// to caller)
+MockRng rng;
+ON_CALL(rng, generate(_, _))
+    .WillByDefault(ReturnArg<0>());
+                        </code></pre>
+                        <pre><code class="hljs cpp" data-trim>
+ON_CALL(mockObject, method(matchers))
+    .With(multiArgumentMatcher)  // 0 or 1
+    .WillByDefault(action);
+                        </code></pre>
+                    </section>
+
+                    <section data-markdown data-notes="
+EXPECT_CALL -- If the mocked method is not called the expected number of times, the test fails.
+
+* Use `ON_CALL` to specify mock actions when you don't care if the mock is called or not
+* Use `EXPECT_CALL` if you want to verify an object/function is called with a particular set of args -- i.e. you're verifying the *communication*
+
+Difference between testing the output result, or testing *how* we get to that result.
+">
+                        ## `ON_CALL` or `EXPECT_CALL`?
+
+                        * `ON_CALL` defines *stubs*
+                        * `EXPECT_CALL` defines *mocks*
+                        * Tests using loads of mocks become tightly coupled with the
+                          component's implementation
+                    </section>
+
+                    <section data-markdown data-notes="
+Justification for rule of thumb:
+
+* makes tests depend less on implementation details
+* for example, if `getCellValue()` is called twice instead of once
+  -- count might not actually matter as long as visible output is the same
+* this is important -- using mocks tightly couples tests to the implementation
+* the possibility of writing tests that overfit the implementation,
+  making the whole test suite harder to maintain as it grows
+* no one wants to spend the majority of their time updating tests when they
+  change a couple of lines of implementation
+* just leads to developers not writing tests
+">
+                        ### Rule of Thumb
+
+                        Use `ON_CALL` unless you actually want to test a
+                        method is called a specific number of times
+                    </section>
+
+                    <section data-markdown>
+                        ## Structuring Mock Tests
+
+                        * `CoinFlipper` generates a value in the range `[0,1]`
+                        * `<0.5` means `HEADS`, `>=0.5` means `TAILS`
+                        * Let's write a test to ensure `HEADS` is returned when
+                          the generated value is `<0.5`
+                        </ul>
+                    </section>
+
+                    <section>
+                        <h2>Test Flow</h2>
+                        <pre><code class="hljs cpp" data-trim>
+TEST(TestFixture, TestName) {
+    // 1) Create mock objects (collaborators)
+
+    // 2) Specify your expectations of them
+
+    // 3) Construct object(s) under test, passing mocks
+
+    // 4) Run code under test
+
+    // 5) Check output (using Google Test or some other framework)
+
+    // 6) Let gmock automatically check mock expectations were met at
+    //    end of test
+}
+                        </code></pre>
+                    </section>
+
+                    <section>
+                        <h2>Test Flow</h2>
+                        <pre><code class="hljs cpp medium" data-trim>
+TEST(CoinFlipper, ShouldReturnHeadsIfRandValueIsLessThanProbability) {
+    // 1) Create mock objects (collaborators)
+    MockRng rng;
+
+    // 2) Specify your expectations of them
+    EXPECT_CALL(rng, generate(DoubleEq(0.0), DoubleEq(1.0)))
+        .Times(Exactly(1))
+        .WillOnce(Return(0.25));
+
+    // 3) Construct object(s) under test, passing mocks
+    CoinFlipper coinFlipper(&rng);
+
+    // 4) Run code under test
+    CoinFlipper::Result result = coinFlipper.flipCoin();
+
+    // 5) Check output (using Google Test or some other framework)
+    EXPECT_EQ(CoinFlipper::HEADS, result);
+
+    // 6) Let gmock automatically check mock expectations were met at end of test
+}
+                        </code></pre>
+                    </section>
+
+                    <section>
+                        <h2>Parametrised Tests</h2>
+                        <pre><code class="hljs cpp small" data-trim>
+TEST_P(CoinFlipper, CoinFlip) {
+    const double randomVal = GetParam().first;
+    const CoinFlipper::Result expectedResult = GetParam().second;
+
+    MockRng rng;
+    EXPECT_CALL(rng, generate(DoubleEq(0.0), DoubleEq(1.0)))
+        .Times(Exactly(1))
+        .WillOnce(Return(randomVal));
+
+    CoinFlipper coinFlipper(&rng);
+    CoinFlipper::Result result = coinFlipper.flipCoin();
+
+    EXPECT_EQ(expectedResult, result);
+}
+
+INSTANTIATE_TEST_CASE_P(ValidRandomNumberGenerated, CoinFlipper,
+                        Values(bsl::make_pair(0.0, CoinFlipper::HEADS),
+                               bsl::make_pair(0.25, CoinFlipper::HEADS),
+                               bsl::make_pair(0.49999, CoinFlipper::HEADS),
+                               bsl::make_pair(0.5, CoinFlipper::TAILS),
+                               bsl::make_pair(0.75, CoinFlipper::TAILS),
+                               bsl::make_pair(1.0, CoinFlipper::TAILS)));
+                        </code></pre>
+                    </section>
+
+                    <section>
+                        <h2>Matchers</h2>
+                        <p>
+                            Matchers are functions used to match mock inputs to
+                            their expected values
+                        </p>
+                        <pre><code class="hljs cpp" data-trim>
+// Matchers are used to set expectations on the values of mocked
+// function arguments
+EXPECT_CALL(printer, printVec(UnorderedElementsAre("foo", "bar")))
+    .Times(Exactly(1));
+
+// They can also be outside of call expectations, to match any kind
+// of value
+EXPECT_THAT(someVector, UnorderedElementsAre("foo", "bar"));
+ASSERT_THAT("my name is Donald", HasSubstr("Donald"));
+                        </code></pre>
+                    </section>
+
+                    <section>
+                        <h2>Common Matchers</h2>
+                        <p>Google Mock provides lots of matchers out-of-the-box</p>
+                        <table class="medium-table-text">
+                            <thead>
+                                <tr>
+                                    <th>Matcher</th>
+                                    <th>Matches</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><code>_</code></td>
+                                    <td>matches anything</td>
+                                </tr>
+                                <tr>
+                                    <td><code>Eq(value)</code></td>
+                                    <td>values using operator==()</td>
+                                </tr>
+                                <tr>
+                                    <td><code>DoubleEq(value)</code></td>
+                                    <td>values using fuzzy 64-bit float equality</td>
+                                </tr>
+                                <tr>
+                                    <td><code>IsNull()</code></td>
+                                    <td>null raw/smart pointers</td>
+                                </tr>
+                                <tr>
+                                    <td><code>StrCaseEq(string)</code></td>
+                                    <td>string (case-insensitive)</td>
+                                </tr>
+                                <tr>
+                                    <td><code>HasSubstr(string)</code></td>
+                                    <td>strings with given substring</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </section>
+
+                    <section>
+                        <h2>Common Matchers</h2>
+                        <p>Google Mock provides lots of matchers out-of-the-box</p>
+                        <table class="medium-table-text">
+                            <thead>
+                                <tr>
+                                    <th>Matcher</th>
+                                    <th>Matches</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><code>Contains(elem)</code></td>
+                                    <td>containers that contain <code>elem</code> at least
+                                    once</td>
+                                </tr>
+                                <tr>
+                                    <td><code>UnorderedElementsAre(e0, e1, ...)</code></td>
+                                    <td>containers that contain specified
+                                    elements, ignoring order</td>
+                                </tr>
+                                <tr>
+                                    <td><code>Field(&class::field, matcher)</code></td>
+                                    <td>
+                                        objects with value for specified member
+                                        variable<br />
+                                        (e.g. <code>obj.d_age</code>)
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td><code>Property(&class::property, matcher)</code></td>
+                                    <td>
+                                        objects with value for specified member
+                                        function<br />
+                                        (e.g. <code>obj.age()</code>)
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </section>
+
+                    <section>
+                        <h2>Nesting Matchers</h2>
+                        <pre><code class="hljs cpp" data-trim>
+// writeVec() should be called once, with a 2-element a vector where:
+//   * one element ~= 0.53
+//   * one element that's not 1.0
+EXPECT_CALL(writer, writeVec(UnorderedElementsAre(DoubleEq(0.53),
+                                                  Not(DoubleEq(1.0)))))
+    .Times(Exactly(1)).WillOnce(Return(0));
+
+// writePerson() should be called once, with a person named Donald
+// (case-insensitive) who is 102 years old
+EXPECT_CALL(writer, savePersonToFile(
+                       AllOf(
+                             Property(&Person::name, StrCaseEq("donald")),
+                             Property(&Person::age, 102)
+                       ));
+    .Times(Exactly(1)).WillOnce(Return(0));
+                        </code></pre>
+                    </section>
+
+                    <section>
+                        <h2>Defining Matchers</h2>
+                        <pre><code class="hljs cpp" data-trim>
+MATCHER(IsEven, "") { return (arg % 2) == 0; }
+
+MATCHER_P(IsDivisibleBy, n, "") {
+    return (arg % n) == 0;
+}
+                        </code></pre>
+                        <pre><code class="hljs cpp" data-trim>
+// all numbers in vector being written should be even
+EXPECT_CALL(writer, writeVec(Each(IsEven))
+    .Times(Exactly(1)).WillOnce(Return(0));
+
+// all numbers in vector being written should be divisible by 3
+EXPECT_CALL(writer, writeVec(Each(IsDivisibleBy(3))))
+    .Times(Exactly(1)).WillOnce(Return(0));
+                        </code></pre>
+                    </section>
+
+                    <section>
+                        <h2>Actions</h2>
+                        <p>
+                            Actions specify what a mock method does when called
+                        </p>
+                        <pre><code class="hljs cpp" data-trim>
+EXPECT_CALL(writer, writeVec(_))
+    .Times(Exactly(1)).WillOnce(
+        Return(1) // action
+    );
+                        </code></pre>
+                    </section>
+
+                    <section>
+                        <h2>Common Actions</h2>
+
+                        <table class="medium-table-text">
+                            <thead>
+                                <tr>
+                                    <th>Action</th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><code>Return(value)</code></td>
+                                    <td>Return specified <code>value</code></td>
+                                </tr>
+                                <tr>
+                                    <td><code>SetArgPointee&lt;N&gt;()</code></td>
+                                    <td>
+                                        Set value of Nth argument passed to
+                                        mocked method<br />
+                                        (useful for out parameters)
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td><code>Throw(exception)</code></td>
+                                    <td>Throw specified <code>exception</code></td>
+                                </tr>
+                                <tr>
+                                    <td><code>Invoke(f)</code></td>
+                                    <td>Invoke function <code>f</code> with
+                                    arguments passed to mocked method</td>
+                                </tr>
+                                <tr>
+                                    <td><code>DoAll(a1, a2, ..., aN)</code></td>
+                                    <td>Perform multiple actions in sequence</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </section>
+
+                    <section>
+                        <h2>Defining Actions</h2>
+                        <pre><code class="hljs cpp" data-trim>
+// return statement in actions causes mock method to return this value
+ACTION(Sum) {
+    return arg0 + arg1;
+}
+
+// parametrised action
+ACTION_P(AppendName, name) {
+    arg0.push_back(name);
+}
+                        </code></pre>
+                        <pre><code class="hljs cpp" data-trim>
+EXPECT_CALL(calculator, add(_, _))
+    .Times(Exactly(1)).WillOnce(Sum());
+
+EXPECT_CALL(customerDatabase, retrieveCustomerNames(_))
+    .Times(Exactly(1)).WillOnce(DoAll(
+        AppendName("Bob"),
+        AppendName("Susie"),
+        Return(0)             // retrieval was a success
+    ));
+                        </code></pre>
+                    </section>
+
+                </section>
+
+                <section>
+                    <section data-markdown>
+                        ## Summary
+                    </section>
+
+                    <section data-markdown data-notes="
+* combine large set of matchers/actions together to form most test expectations you'll probably need
+* extensible, by defining own matchers/actions
+">
+                        ## Test Doubles
+
+                        * Replace collaborators with **test doubles**, which:
+                            * removes dependencies on non-deterministic behaviour
+                            * reduces setup code in tests
+                        * Makes tests easier to write and maintain
+                        * Use **stubs** if it's awkward to use the real thing
+                        * Use **mocks** when you want to test the
+                        *communication* between components
+                    </section>
+
+
+                    <section data-markdown data-notes="
+* combine large set of matchers/actions together to form most test expectations you'll probably need
+* extensible, by defining own matchers/actions
+">
+                        ## Google Test and Mock
+
+                        * **Google Test** is a C++ testing framework
+                        * **Google Mock** is a C++ framework for defining
+                          stubs/mocks
+                            * large set of matchers/actions
+                            * extensible
+                            * often used in conjunction with Google Test
+                    </section>
+
+                    <section data-markdown data-notes="
+    * awkward to mock complex data structures -- e.g. tabular, hierarchical data. Much easier to define an in-memory test implementation instead of writing loads of awkward mock expectations
+    * awkward to mock commonly used interfaces -- lots of duplicate mock expectations in different test drivers
+
+    However, I would argue using Google Mock for stubbing and mocking collaborators is suitable for *most cases*.
+
+    We've used it extensively for our SI project, which specifies many different interfaces and different kinds of components, such as:
+
+    * reading/writing from/to databases, caches, files
+    * complex business logic
+    * complex string manipulation
+    * rule-based behaviour
+    * factory construction
+    * asychronous code which uses callbacks
+    * log testing (e.g. for alarming on fatal errors)
+
+    Currently, we haven't hit a situation where it's been a pain to use.
+    ">
+                        ## When to Use Google Mock
+
+                        * Google Mock is not a panacea
+                        * Shouldn't be used to replace all collaborators
+                        * Awkward to use generated mocks in certain situations:
+                            * complex data structures
+                            * commonly used interfaces
+                        * Using hand-crafted test implementations is a better
+                          choice in some circumstances
+                        * Google Mock **suitable for most cases**
+                    </section>
+
+
+                    <section data-markdown data-notes="
+* Martin Fowler wrote an in-depth piece on stubs and mocks, the benefits and downsides of each and when to use them
+">
+                        ## Useful Resources
+
+                        * Detailed documentation on GitHub:
+                            * [Google Test](https://github.com/google/googletest/tree/master/googletest/docs)
+                            * [Google Mock](https://github.com/google/googletest/tree/master/googletest/docs)
+                        * [Mocks Aren't Stubs](http://martinfowler.com/articles/mocksArentStubs.html)
+                            * *classical* vs. *mockist* testing
+                        * [Growing Object-Oriented Software, Guided by Tests](http://www.amazon.co.uk/Growing-Object-Oriented-Software-Guided-Signature/dp/0321503627)
+                    </section>
+                </section>
+
+            </div>
+
+        </div>
+
+        <script src="lib/js/head.min.js"></script>
+        <script src="js/reveal.js"></script>
+
+        <script>
+            Reveal.initialize({
+                controls: true,
+                progress: true,
+                history: true,
+                center: true,
+
+                transition: 'none', // none/fade/slide/convex/concave/zoom
+
+                // Optional reveal.js plugins
+                dependencies: [
+                    { src: 'lib/js/classList.js', condition: function() { return !document.body.classList; } },
+                    { src: 'plugin/markdown/marked.js', condition: function() { return !!document.querySelector( '[data-markdown]' ); } },
+                    { src: 'plugin/markdown/markdown.js', condition: function() { return !!document.querySelector( '[data-markdown]' ); } },
+                    { src: 'plugin/highlight/highlight.js', async: true, callback: function() { hljs.initHighlightingOnLoad(); } },
+                    { src: 'plugin/zoom-js/zoom.js', async: true },
+                    { src: 'plugin/notes/notes.js', async: true },
+                    {
+                        src: 'plugin/external/external.js',
+                        condition: function() {
+                            return !!document.querySelector( '[data-external]' );
+                        }
+                    },
+                ]
+            });
+
+        </script>
+
+    </body>
+</html>
