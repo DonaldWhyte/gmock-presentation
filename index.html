@@ -452,13 +452,13 @@ class CoinFlipper {
                         <pre><code class="hljs cpp" data-trim>
 CoinFlipper::CoinFlipper(Rng* rng) : d_rng(rng)
 {
-    BSLS_ASSERT(d_rng);
+    assert(d_rng);
 }
 
 CoinFlipper::Result CoinFlipper::flipCoin() const
 {
     const double val = d_rng->generate(0.0, 1.0);
-    BSLS_ASSERT(0.0 <= val && val <= 1.0);
+    assert(0.0 <= val && val <= 1.0);
 
     return (val < 0.5) ? HEADS : TAILS;
 }
@@ -708,12 +708,12 @@ TEST_P(CoinFlipper, CoinFlip) {
 }
 
 INSTANTIATE_TEST_CASE_P(ValidRandomNumberGenerated, CoinFlipper,
-                        Values(bsl::make_pair(0.0, CoinFlipper::HEADS),
-                               bsl::make_pair(0.25, CoinFlipper::HEADS),
-                               bsl::make_pair(0.49999, CoinFlipper::HEADS),
-                               bsl::make_pair(0.5, CoinFlipper::TAILS),
-                               bsl::make_pair(0.75, CoinFlipper::TAILS),
-                               bsl::make_pair(1.0, CoinFlipper::TAILS)));
+                        Values(std::make_pair(0.0, CoinFlipper::HEADS),
+                               std::make_pair(0.25, CoinFlipper::HEADS),
+                               std::make_pair(0.49999, CoinFlipper::HEADS),
+                               std::make_pair(0.5, CoinFlipper::TAILS),
+                               std::make_pair(0.75, CoinFlipper::TAILS),
+                               std::make_pair(1.0, CoinFlipper::TAILS)));
                         </code></pre>
                     </section>
 
